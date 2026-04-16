@@ -1,0 +1,43 @@
+menu "Board configuration"
+
+    config BOARD_PIN_PWR_ON
+        int "GPIO for PWR_ON"
+        range 0 48
+        default 48
+
+    config BOARD_PIN_LED_EN
+        int "GPIO for LED_EN"
+        range 0 48
+        default 36
+
+    config BOARD_PIN_LED_RESET_N
+        int "GPIO for LED_nRESET"
+        range 0 48
+        default 37
+
+    config BOARD_PIN_HP_DET
+        int "GPIO for HP_DET"
+        range 0 48
+        default 47
+
+    config BOARD_PIN_AC_NOK
+        int "GPIO for AC_nOK"
+        range 0 48
+        default 41
+
+    config BOARD_PIN_CHG_OK
+        int "GPIO for CHG_OK"
+        range 0 48
+        default 42
+
+    config BOARD_PIN_LED_FAULT1_N
+        int "GPIO for LED_nFAULT_1"
+        range 0 48
+        default 39
+
+    config BOARD_PIN_LED_FAULT2_N
+        int "GPIO for LED_nFAULT_2"
+        range 0 48
+        default 40
+
+endmenu
