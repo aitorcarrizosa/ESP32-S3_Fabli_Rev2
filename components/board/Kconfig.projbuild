@@ -125,5 +125,38 @@ menu "Board configuration"
         int "Encoder switch pin"
         range 0 48
         default 35
+    
+    # -------------------------------------------------------------------------
+    # uSD card (SDMMC 4-bit)
+    # -------------------------------------------------------------------------
+    config BOARD_SD_D0_PIN
+        int "uSD D0 pin"
+        range 0 48
+        default 2
+
+    config BOARD_SD_D1_PIN
+        int "uSD D1 pin"
+        range 0 48
+        default 4
+
+    config BOARD_SD_D2_PIN
+        int "uSD D2 pin"
+        range 0 48
+        default 12
+
+    config BOARD_SD_D3_PIN
+        int "uSD D3 pin"
+        range 0 48
+        default 13
+
+    config BOARD_SD_CMD_PIN
+        int "uSD CMD pin"
+        range 0 48
+        default 15
+
+    config BOARD_SD_CLK_PIN
+        int "uSD CLK pin"
+        range 0 48
+        default 14
 
 endmenu

@@ -14,6 +14,17 @@
 #include "driver/uart.h"
 
 #include "gpio_ctrl.h"
+#include "sdcard_ctrl.h"
+
+/* Command handlers */
+static int cmd_info(int argc, char **argv);
+static int cmd_reset(int argc, char **argv);
+static int cmd_gpio(int argc, char **argv);
+static int cmd_sd(int argc, char **argv);
+
+/* Internal helpers */
+static void register_commands(void);
+static int uart_readline_echo(uart_port_t uart, char *out, int out_sz);
 
 /* ------------------------- Info command ------------------------- */
 static int cmd_info(int argc, char **argv)
@@ -126,9 +137,18 @@ static void register_commands(void)
         .argtable = NULL,
     };
 
+    const esp_console_cmd_t cmd_sd_def = {
+        .command = "sd",
+        .help = "SD card control",
+        .hint = NULL,
+        .func = &cmd_sd,
+        .argtable = NULL,
+    };
+
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_info_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_reset_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_gpio_def));
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_sd_def));
 }
 
 /* ---------------------- UART readline echo ---------------------- */
@@ -229,4 +249,49 @@ void console_start_uart0(void)
         printf("ESP32-S3_Fabli_Rev2> ");
         fflush(stdout);
     }
+}
+
+/* ------------------------- SD card ------------------------- */
+static int cmd_sd(int argc, char **argv)
+{
+    esp_err_t err;
+
+    if (argc < 2) {
+        printf("Usage:\r\n");
+        printf("  sd init\r\n");
+        printf("  sd deinit\r\n");
+        printf("  sd info\r\n");
+        return 0;
+    }
+
+    if (!strcmp(argv[1], "init")) {
+        err = sdcard_ctrl_init();
+        if (err == ESP_OK) {
+            printf("SD card initialized and mounted\r\n");
+        } else {
+            printf("SD init failed: %s\r\n", esp_err_to_name(err));
+        }
+        return 0;
+    }
+
+    if (!strcmp(argv[1], "deinit")) {
+        err = sdcard_ctrl_deinit();
+        if (err == ESP_OK) {
+            printf("SD card unmounted\r\n");
+        } else {
+            printf("SD deinit failed: %s\r\n", esp_err_to_name(err));
+        }
+        return 0;
+    }
+
+    if (!strcmp(argv[1], "info")) {
+        err = sdcard_ctrl_print_info();
+        if (err != ESP_OK) {
+            printf("SD info failed: %s\r\n", esp_err_to_name(err));
+        }
+        return 0;
+    }
+
+    printf("Unknown sd subcommand\r\n");
+    return 0;
 }

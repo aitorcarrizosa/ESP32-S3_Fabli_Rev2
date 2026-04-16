@@ -36,6 +36,13 @@ extern "C" {
 #define PIN_ENCODER_B       ((gpio_num_t)CONFIG_BOARD_PIN_ENCODER_B)
 #define PIN_ENCODER_SW_N    ((gpio_num_t)CONFIG_BOARD_PIN_ENCODER_SW_N)
 
+#define BOARD_SD_D0_PIN     ((gpio_num_t)CONFIG_BOARD_SD_D0_PIN)
+#define BOARD_SD_D1_PIN     ((gpio_num_t)CONFIG_BOARD_SD_D1_PIN)
+#define BOARD_SD_D2_PIN     ((gpio_num_t)CONFIG_BOARD_SD_D2_PIN)
+#define BOARD_SD_D3_PIN     ((gpio_num_t)CONFIG_BOARD_SD_D3_PIN)
+#define BOARD_SD_CMD_PIN    ((gpio_num_t)CONFIG_BOARD_SD_CMD_PIN)
+#define BOARD_SD_CLK_PIN    ((gpio_num_t)CONFIG_BOARD_SD_CLK_PIN)
+
 void board_init(void);
 
 #ifdef __cplusplus
