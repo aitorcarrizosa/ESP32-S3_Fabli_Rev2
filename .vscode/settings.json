@@ -1,0 +1,12 @@
+{
+  "idf.currentSetup": "C:\\esp\\v5.5.3\\esp-idf",
+  "C_Cpp.errorSquiggles": "enabled",
+  "idf.openOcdConfigs": [
+    "board/esp32s3-builtin.cfg"
+  ],
+    "idf.portWin": "COM25",
+    "idf.flashType": "JTAG",
+    "idf.customExtraVars": {
+    "IDF_TARGET": "esp32s3"
+  },
+}
