@@ -1,142 +1,128 @@
 menu "Board configuration"
+    depends on IDF_TARGET_ESP32S3
 
     # -------------------------------------------------------------------------
-    # Power
+    # Power / GPIO control
     # -------------------------------------------------------------------------
     config BOARD_PIN_PWR_ON
-        int "GPIO for PWR_ON"
+        int "PWR_ON pin"
         range 0 48
         default 48
 
-    # -------------------------------------------------------------------------
-    # LED drivers (AL5887 x2)
-    # -------------------------------------------------------------------------
     config BOARD_PIN_LED_EN
-        int "GPIO for LED_EN"
+        int "LED_EN pin"
         range 0 48
         default 36
 
     config BOARD_PIN_LED_RESET_N
-        int "GPIO for LED_nRESET"
+        int "LED_nRESET pin"
         range 0 48
         default 37
 
     config BOARD_PIN_LED_FAULT1_N
-        int "GPIO for LED_nFAULT_1"
+        int "LED_nFAULT_1 pin"
         range 0 48
         default 39
 
     config BOARD_PIN_LED_FAULT2_N
-        int "GPIO for LED_nFAULT_2"
+        int "LED_nFAULT_2 pin"
         range 0 48
         default 40
 
-    # -------------------------------------------------------------------------
-    # Audio / headphone
-    # -------------------------------------------------------------------------
     config BOARD_PIN_HP_DET
-        int "GPIO for HP_DET"
+        int "HP_DET pin"
         range 0 48
         default 47
 
-    # -------------------------------------------------------------------------
-    # Charger / power status (MP2617BGL)
-    # -------------------------------------------------------------------------
     config BOARD_PIN_AC_NOK
-        int "GPIO for AC_nOK"
+        int "AC_nOK pin"
         range 0 48
         default 41
 
     config BOARD_PIN_CHG_OK
-        int "GPIO for CHG_OK"
+        int "CHG_OK pin"
         range 0 48
         default 42
 
-    # -------------------------------------------------------------------------
-    # Interrupt inputs
-    # -------------------------------------------------------------------------
     config BOARD_PIN_KEY_INT_N
-        int "GPIO for KEY_nINT (PCAL6524)"
+        int "KEY_nINT pin"
         range 0 48
         default 6
 
     config BOARD_PIN_FUSB_INT_N
-        int "GPIO for FUSB_nINT (FUSB303)"
+        int "FUSB_nINT pin"
         range 0 48
         default 3
 
     config BOARD_PIN_MEMS_INT1
-        int "GPIO for MEMS_INT1 (LIS2DH12)"
+        int "MEMS_INT1 pin"
         range 0 48
         default 11
 
     # -------------------------------------------------------------------------
-    # ADC inputs
+    # ADC
     # -------------------------------------------------------------------------
-    config BOARD_PIN_VBAT_ADC
-        int "GPIO for VBAT_ADC (ADC1_CH0)"
+    config BOARD_VBAT_ADC_PIN
+        int "VBAT ADC pin"
         range 0 48
         default 1
 
-    config BOARD_PIN_REV_ADC
-        int "GPIO for REV_ADC (ADC1_CH8)"
+    config BOARD_REV_ADC_PIN
+        int "REV ADC pin"
         range 0 48
         default 9
 
     # -------------------------------------------------------------------------
-    # I2C bus 0 — codec TSCS42A2, FUSB303, LIS2DH12
+    # I2C
     # -------------------------------------------------------------------------
-    config BOARD_PIN_I2C0_SDA
-        int "GPIO for I2C0_SDA"
+    config BOARD_I2C0_SDA_PIN
+        int "I2C0 SDA pin"
         range 0 48
         default 17
 
-    config BOARD_PIN_I2C0_SCL
-        int "GPIO for I2C0_SCL"
+    config BOARD_I2C0_SCL_PIN
+        int "I2C0 SCL pin"
         range 0 48
         default 18
 
-    # -------------------------------------------------------------------------
-    # I2C bus 1 — PCAL6524, AL5887 x2
-    # -------------------------------------------------------------------------
-    config BOARD_PIN_I2C1_SDA
-        int "GPIO for I2C1_SDA"
+    config BOARD_I2C1_SDA_PIN
+        int "I2C1 SDA pin"
         range 0 48
         default 26
 
-    config BOARD_PIN_I2C1_SCL
-        int "GPIO for I2C1_SCL"
+    config BOARD_I2C1_SCL_PIN
+        int "I2C1 SCL pin"
         range 0 48
         default 21
 
     # -------------------------------------------------------------------------
     # UART0 debug
     # -------------------------------------------------------------------------
-    config BOARD_PIN_DEBUG_TX
-        int "GPIO for DEBUG_TX (U0TXD)"
+    config BOARD_UART0_TX_PIN
+        int "UART0 TX pin"
         range 0 48
         default 43
 
-    config BOARD_PIN_DEBUG_RX
-        int "GPIO for DEBUG_RX (U0RXD)"
+    config BOARD_UART0_RX_PIN
+        int "UART0 RX pin"
         range 0 48
         default 44
 
     # -------------------------------------------------------------------------
-    # Rotary encoder (RIC11-31S10K2)
+    # Encoder
     # -------------------------------------------------------------------------
-    config BOARD_PIN_ENCODER_A
-        int "GPIO for ENCODER_A"
+    config BOARD_ENCODER_A_PIN
+        int "Encoder A pin"
         range 0 48
         default 33
 
-    config BOARD_PIN_ENCODER_B
-        int "GPIO for ENCODER_B"
+    config BOARD_ENCODER_B_PIN
+        int "Encoder B pin"
         range 0 48
         default 34
 
-    config BOARD_PIN_ENCODER_SW_N
-        int "GPIO for ENCODER_nSW"
+    config BOARD_ENCODER_SW_N_PIN
+        int "Encoder switch pin"
         range 0 48
         default 35
 
