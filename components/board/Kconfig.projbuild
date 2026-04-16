@@ -1,10 +1,16 @@
 menu "Board configuration"
 
+    # -------------------------------------------------------------------------
+    # Power
+    # -------------------------------------------------------------------------
     config BOARD_PIN_PWR_ON
         int "GPIO for PWR_ON"
         range 0 48
         default 48
 
+    # -------------------------------------------------------------------------
+    # LED drivers (AL5887 x2)
+    # -------------------------------------------------------------------------
     config BOARD_PIN_LED_EN
         int "GPIO for LED_EN"
         range 0 48
@@ -15,11 +21,27 @@ menu "Board configuration"
         range 0 48
         default 37
 
+    config BOARD_PIN_LED_FAULT1_N
+        int "GPIO for LED_nFAULT_1"
+        range 0 48
+        default 39
+
+    config BOARD_PIN_LED_FAULT2_N
+        int "GPIO for LED_nFAULT_2"
+        range 0 48
+        default 40
+
+    # -------------------------------------------------------------------------
+    # Audio / headphone
+    # -------------------------------------------------------------------------
     config BOARD_PIN_HP_DET
         int "GPIO for HP_DET"
         range 0 48
         default 47
 
+    # -------------------------------------------------------------------------
+    # Charger / power status (MP2617BGL)
+    # -------------------------------------------------------------------------
     config BOARD_PIN_AC_NOK
         int "GPIO for AC_nOK"
         range 0 48
@@ -30,14 +52,92 @@ menu "Board configuration"
         range 0 48
         default 42
 
-    config BOARD_PIN_LED_FAULT1_N
-        int "GPIO for LED_nFAULT_1"
+    # -------------------------------------------------------------------------
+    # Interrupt inputs
+    # -------------------------------------------------------------------------
+    config BOARD_PIN_KEY_INT_N
+        int "GPIO for KEY_nINT (PCAL6524)"
         range 0 48
-        default 39
+        default 6
 
-    config BOARD_PIN_LED_FAULT2_N
-        int "GPIO for LED_nFAULT_2"
+    config BOARD_PIN_FUSB_INT_N
+        int "GPIO for FUSB_nINT (FUSB303)"
         range 0 48
-        default 40
+        default 3
+
+    config BOARD_PIN_MEMS_INT1
+        int "GPIO for MEMS_INT1 (LIS2DH12)"
+        range 0 48
+        default 11
+
+    # -------------------------------------------------------------------------
+    # ADC inputs
+    # -------------------------------------------------------------------------
+    config BOARD_PIN_VBAT_ADC
+        int "GPIO for VBAT_ADC (ADC1_CH0)"
+        range 0 48
+        default 1
+
+    config BOARD_PIN_REV_ADC
+        int "GPIO for REV_ADC (ADC1_CH8)"
+        range 0 48
+        default 9
+
+    # -------------------------------------------------------------------------
+    # I2C bus 0 — codec TSCS42A2, FUSB303, LIS2DH12
+    # -------------------------------------------------------------------------
+    config BOARD_PIN_I2C0_SDA
+        int "GPIO for I2C0_SDA"
+        range 0 48
+        default 17
+
+    config BOARD_PIN_I2C0_SCL
+        int "GPIO for I2C0_SCL"
+        range 0 48
+        default 18
+
+    # -------------------------------------------------------------------------
+    # I2C bus 1 — PCAL6524, AL5887 x2
+    # -------------------------------------------------------------------------
+    config BOARD_PIN_I2C1_SDA
+        int "GPIO for I2C1_SDA"
+        range 0 48
+        default 26
+
+    config BOARD_PIN_I2C1_SCL
+        int "GPIO for I2C1_SCL"
+        range 0 48
+        default 21
+
+    # -------------------------------------------------------------------------
+    # UART0 debug
+    # -------------------------------------------------------------------------
+    config BOARD_PIN_DEBUG_TX
+        int "GPIO for DEBUG_TX (U0TXD)"
+        range 0 48
+        default 43
+
+    config BOARD_PIN_DEBUG_RX
+        int "GPIO for DEBUG_RX (U0RXD)"
+        range 0 48
+        default 44
+
+    # -------------------------------------------------------------------------
+    # Rotary encoder (RIC11-31S10K2)
+    # -------------------------------------------------------------------------
+    config BOARD_PIN_ENCODER_A
+        int "GPIO for ENCODER_A"
+        range 0 48
+        default 33
+
+    config BOARD_PIN_ENCODER_B
+        int "GPIO for ENCODER_B"
+        range 0 48
+        default 34
+
+    config BOARD_PIN_ENCODER_SW_N
+        int "GPIO for ENCODER_nSW"
+        range 0 48
+        default 35
 
 endmenu
