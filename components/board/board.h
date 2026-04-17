@@ -17,8 +17,11 @@ extern "C" {
 #define PIN_LED_FAULT1_N    ((gpio_num_t)CONFIG_BOARD_PIN_LED_FAULT1_N)
 #define PIN_LED_FAULT2_N    ((gpio_num_t)CONFIG_BOARD_PIN_LED_FAULT2_N)
 
-#define PIN_KEY_INT_N       ((gpio_num_t)CONFIG_BOARD_PIN_KEY_INT_N)
+#define PIN_USB_SRC         ((gpio_num_t)CONFIG_BOARD_PIN_USB_SRC)
+#define PIN_FUSB_ID         ((gpio_num_t)CONFIG_BOARD_PIN_FUSB_ID)
 #define PIN_FUSB_INT_N      ((gpio_num_t)CONFIG_BOARD_PIN_FUSB_INT_N)
+
+#define PIN_KEY_INT_N       ((gpio_num_t)CONFIG_BOARD_PIN_KEY_INT_N)
 #define PIN_MEMS_INT1       ((gpio_num_t)CONFIG_BOARD_PIN_MEMS_INT1)
 
 #define PIN_VBAT_ADC        ((gpio_num_t)CONFIG_BOARD_VBAT_ADC_PIN)

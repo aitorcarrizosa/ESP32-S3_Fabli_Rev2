@@ -49,11 +49,6 @@ menu "Board PINOUT configuration"
         range 0 48
         default 6
 
-    config BOARD_PIN_FUSB_INT_N
-        int "FUSB_nINT pin"
-        range 0 48
-        default 3
-
     config BOARD_PIN_MEMS_INT1
         int "MEMS_INT1 pin"
         range 0 48
@@ -158,5 +153,22 @@ menu "Board PINOUT configuration"
         int "uSD CLK pin"
         range 0 48
         default 14
+    # -------------------------------------------------------------------------
+    # USB / FUSB302
+    # -------------------------------------------------------------------------
+    config BOARD_PIN_USB_SRC
+    int "GPIO for USB_SRC"
+        range 0 48
+        default 10
+
+    config BOARD_PIN_FUSB_INT_N
+        int "FUSB_nINT pin"
+        range 0 48
+        default 3
+
+    config BOARD_PIN_FUSB_ID
+        int "GPIO for FUSB_ID"
+        range 0 48
+        default 7
 
 endmenu

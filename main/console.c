@@ -62,7 +62,7 @@ static void register_commands(void)
         .hint = NULL,
         .func = &cmd_i2c,
         .argtable = NULL,
-};
+    };
 
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_reset_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_gpio_def));
@@ -260,7 +260,7 @@ void console_start(void)
     ESP_ERROR_CHECK(err);
 
 #else
-#error "No console backend selected"
+#error "No console selected"
 #endif
 }
 
@@ -280,7 +280,7 @@ static int cmd_sd(int argc, char **argv)
     if (!strcmp(argv[1], "mount")) {
         err = sdcard_ctrl_mount();
         if (err == ESP_OK) {
-            printf("SD card initialized and mounted\r\n");
+            printf("SD card mounted\r\n");
         } else {
             printf("SD mount failed: %s\r\n", esp_err_to_name(err));
         }

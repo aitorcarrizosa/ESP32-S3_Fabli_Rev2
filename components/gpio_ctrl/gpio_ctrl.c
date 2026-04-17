@@ -20,7 +20,8 @@ esp_err_t gpio_ctrl_init(void)
     const gpio_config_t out_conf = {
         .pin_bit_mask = (1ULL << PIN_PWR_ON) |
                         (1ULL << PIN_LED_EN) |
-                        (1ULL << PIN_LED_RESET_N),
+                        (1ULL << PIN_LED_RESET_N) |
+                        (1ULL << PIN_USB_SRC),
         .mode = GPIO_MODE_OUTPUT,
         .pull_up_en = GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
@@ -30,6 +31,12 @@ esp_err_t gpio_ctrl_init(void)
     ret = gpio_config(&out_conf);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to configure output GPIOs: %s", esp_err_to_name(ret));
+        return ret;
+    }
+
+    ret = gpio_set_level(PIN_USB_SRC, 0);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set USB_SRC: %s", esp_err_to_name(ret));
         return ret;
     }
 
@@ -93,10 +100,12 @@ void gpio_ctrl_set_led_enable(bool on)
 
 void gpio_ctrl_set_led_reset(bool reset_released)
 {
-    // Signal name is LED_nRESET:
-    // 1 = reset released
-    // 0 = reset asserted
     ESP_ERROR_CHECK(gpio_set_level(PIN_LED_RESET_N, reset_released ? 1 : 0));
+}
+
+void gpio_ctrl_set_usb_src(bool on)
+{
+    ESP_ERROR_CHECK(gpio_set_level(PIN_USB_SRC, on ? 1 : 0));
 }
 
 bool gpio_ctrl_get_hp_det(void)
@@ -124,15 +133,21 @@ bool gpio_ctrl_get_led_fault2_n(void)
     return gpio_get_level(PIN_LED_FAULT2_N) ? true : false;
 }
 
+bool gpio_ctrl_get_usb_src(void)
+{
+    return gpio_get_level(PIN_USB_SRC) ? true : false;
+}
+
 void gpio_ctrl_print_status(void)
 {
     ESP_LOGI(TAG,
-             "Inputs: HP_DET=%d AC_nOK=%d CHG_OK=%d LED_nFAULT_1=%d LED_nFAULT_2=%d",
+             "Inputs: HP_DET=%d AC_nOK=%d CHG_OK=%d LED_nFAULT_1=%d LED_nFAULT_2=%d | Outputs: USB_SRC=%d",
              gpio_ctrl_get_hp_det(),
              gpio_ctrl_get_ac_nok(),
              gpio_ctrl_get_chg_ok(),
              gpio_ctrl_get_led_fault1_n(),
-             gpio_ctrl_get_led_fault2_n());
+             gpio_ctrl_get_led_fault2_n(),
+             gpio_ctrl_get_usb_src());
 }
 
 void gpio_ctrl_test_toggle(void)
