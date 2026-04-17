@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include <dirent.h>
-#include <string.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -10,13 +9,15 @@
 #include "board.h"
 
 #include "driver/sdmmc_host.h"
+#include "esp_err.h"
 #include "esp_log.h"
 #include "esp_vfs_fat.h"
 #include "sdmmc_cmd.h"
 
-#define SDCARD_BUS_WIDTH      4
-#define SDCARD_MAX_RETRIES    3
-#define SDCARD_RETRY_DELAY_MS 100
+#define SDCARD_BUS_WIDTH              4
+#define SDCARD_MAX_RETRIES            3
+#define SDCARD_RETRY_DELAY_MS         100
+#define SDCARD_STABILIZATION_DELAY_MS 100
 
 static const char *TAG = "sdcard_ctrl";
 static const char *s_mount_point = "/sdcard";
@@ -39,10 +40,10 @@ static esp_err_t sdcard_ctrl_check_card_status(void)
     return ESP_OK;
 }
 
-esp_err_t sdcard_ctrl_init(void)
+esp_err_t sdcard_ctrl_mount(void)
 {
     if (s_mounted) {
-        ESP_LOGW(TAG, "SD card already initialized");
+        ESP_LOGW(TAG, "uSD card already mounted");
         return ESP_OK;
     }
 
@@ -72,8 +73,8 @@ esp_err_t sdcard_ctrl_init(void)
         .use_one_fat = false,
     };
 
-    ESP_LOGI(TAG, "Initializing uSD card");
-    ESP_LOGI(TAG, "Pins: CLK=%d CMD=%d D0=%d D1=%d D2=%d D3=%d",
+    ESP_LOGI(TAG, "Mounting uSD card");
+    ESP_LOGI(TAG, "uSD pins: CLK=%d CMD=%d D0=%d D1=%d D2=%d D3=%d",
              BOARD_SD_CLK_PIN,
              BOARD_SD_CMD_PIN,
              BOARD_SD_D0_PIN,
@@ -81,13 +82,16 @@ esp_err_t sdcard_ctrl_init(void)
              BOARD_SD_D2_PIN,
              BOARD_SD_D3_PIN);
 
-    // Give lines some time to stabilize
-    vTaskDelay(pdMS_TO_TICKS(100));
+    vTaskDelay(pdMS_TO_TICKS(SDCARD_STABILIZATION_DELAY_MS));
 
     esp_err_t ret = ESP_FAIL;
 
     for (int retry = 0; retry < SDCARD_MAX_RETRIES; retry++) {
-        ret = esp_vfs_fat_sdmmc_mount(s_mount_point, &host, &slot_config, &mount_config, &s_card);
+        ret = esp_vfs_fat_sdmmc_mount(s_mount_point,
+                                      &host,
+                                      &slot_config,
+                                      &mount_config,
+                                      &s_card);
 
         if (ret == ESP_OK) {
             ret = sdcard_ctrl_check_card_status();
@@ -98,26 +102,30 @@ esp_err_t sdcard_ctrl_init(void)
                 return ESP_OK;
             }
 
-            // Mount succeeded but status check failed
+            ESP_LOGW(TAG, "Card mounted but status check failed: %s", esp_err_to_name(ret));
             esp_vfs_fat_sdcard_unmount(s_mount_point, s_card);
             s_card = NULL;
         }
 
-        ESP_LOGW(TAG, "Mount attempt %d failed: %s", retry + 1, esp_err_to_name(ret));
+        ESP_LOGW(TAG, "Mount attempt %d/%d failed: %s",
+                 retry + 1,
+                 SDCARD_MAX_RETRIES,
+                 esp_err_to_name(ret));
+
         vTaskDelay(pdMS_TO_TICKS(SDCARD_RETRY_DELAY_MS));
     }
 
     s_card = NULL;
     s_mounted = false;
 
-    ESP_LOGE(TAG, "Failed to initialize uSD card after %d attempts", SDCARD_MAX_RETRIES);
+    ESP_LOGE(TAG, "Failed to mount uSD card after %d attempts", SDCARD_MAX_RETRIES);
     return ret;
 }
 
-esp_err_t sdcard_ctrl_deinit(void)
+esp_err_t sdcard_ctrl_unmount(void)
 {
     if (!s_mounted || s_card == NULL) {
-        ESP_LOGW(TAG, "uSD card not mounted");
+        ESP_LOGW(TAG, "uSD card is not mounted");
         return ESP_OK;
     }
 
@@ -142,7 +150,7 @@ bool sdcard_ctrl_is_mounted(void)
 esp_err_t sdcard_ctrl_print_info(void)
 {
     if (!s_mounted || s_card == NULL) {
-        ESP_LOGW(TAG, "uSD card not mounted");
+        ESP_LOGW(TAG, "uSD card is not mounted");
         return ESP_ERR_INVALID_STATE;
     }
 

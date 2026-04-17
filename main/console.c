@@ -15,25 +15,59 @@
 
 #include "gpio_ctrl.h"
 #include "sdcard_ctrl.h"
+#include "i2c_bus.h"
 
 /* Command handlers */
-static int cmd_info(int argc, char **argv);
 static int cmd_reset(int argc, char **argv);
 static int cmd_gpio(int argc, char **argv);
 static int cmd_sd(int argc, char **argv);
+static int cmd_i2c(int argc, char **argv);
 
 /* Internal helpers */
 static void register_commands(void);
 static int uart_readline_echo(uart_port_t uart, char *out, int out_sz);
 
-/* ------------------------- Info command ------------------------- */
-static int cmd_info(int argc, char **argv)
+/* --------------------- Command registration --------------------- */
+static void register_commands(void)
 {
-    (void)argc;
-    (void)argv;
+    esp_console_register_help_command();
 
-    printf("ESP32-S3_Fabli_Rev2 console OK\r\n");
-    return 0;
+    const esp_console_cmd_t cmd_reset_def = {
+        .command = "reset",
+        .help = "Reset the device",
+        .hint = NULL,
+        .func = &cmd_reset,
+        .argtable = NULL,
+    };
+
+    const esp_console_cmd_t cmd_gpio_def = {
+        .command = "gpio",
+        .help = "GPIO utilities",
+        .hint = NULL,
+        .func = &cmd_gpio,
+        .argtable = NULL,
+    };
+
+    const esp_console_cmd_t cmd_sd_def = {
+        .command = "sd",
+        .help = "SD card control",
+        .hint = NULL,
+        .func = &cmd_sd,
+        .argtable = NULL,
+    };
+
+    const esp_console_cmd_t cmd_i2c_def = {
+    .command = "i2c",
+    .help = "I2C bus control and scan",
+    .hint = NULL,
+    .func = &cmd_i2c,
+    .argtable = NULL,
+};
+
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_reset_def));
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_gpio_def));
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_sd_def));
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_i2c_def));
 }
 
 /* ------------------------- Reset command ------------------------ */
@@ -106,49 +140,6 @@ static int cmd_gpio(int argc, char **argv)
 
     printf("Unknown gpio subcommand\r\n");
     return 0;
-}
-
-/* --------------------- Command registration --------------------- */
-static void register_commands(void)
-{
-    esp_console_register_help_command();
-
-    const esp_console_cmd_t cmd_info_def = {
-        .command = "info",
-        .help = "Print basic info",
-        .hint = NULL,
-        .func = &cmd_info,
-        .argtable = NULL,
-    };
-
-    const esp_console_cmd_t cmd_reset_def = {
-        .command = "reset",
-        .help = "Reset the device",
-        .hint = NULL,
-        .func = &cmd_reset,
-        .argtable = NULL,
-    };
-
-    const esp_console_cmd_t cmd_gpio_def = {
-        .command = "gpio",
-        .help = "GPIO utilities",
-        .hint = NULL,
-        .func = &cmd_gpio,
-        .argtable = NULL,
-    };
-
-    const esp_console_cmd_t cmd_sd_def = {
-        .command = "sd",
-        .help = "SD card control",
-        .hint = NULL,
-        .func = &cmd_sd,
-        .argtable = NULL,
-    };
-
-    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_info_def));
-    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_reset_def));
-    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_gpio_def));
-    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_sd_def));
 }
 
 /* ---------------------- UART readline echo ---------------------- */
@@ -258,28 +249,28 @@ static int cmd_sd(int argc, char **argv)
 
     if (argc < 2) {
         printf("Usage:\r\n");
-        printf("  sd init\r\n");
-        printf("  sd deinit\r\n");
+        printf("  sd mount\r\n");
+        printf("  sd unmount\r\n");
         printf("  sd info\r\n");
         return 0;
     }
 
-    if (!strcmp(argv[1], "init")) {
-        err = sdcard_ctrl_init();
+    if (!strcmp(argv[1], "mount")) {
+        err = sdcard_ctrl_mount();
         if (err == ESP_OK) {
             printf("SD card initialized and mounted\r\n");
         } else {
-            printf("SD init failed: %s\r\n", esp_err_to_name(err));
+            printf("SD mount failed: %s\r\n", esp_err_to_name(err));
         }
         return 0;
     }
 
-    if (!strcmp(argv[1], "deinit")) {
-        err = sdcard_ctrl_deinit();
+    if (!strcmp(argv[1], "unmount")) {
+        err = sdcard_ctrl_unmount();
         if (err == ESP_OK) {
             printf("SD card unmounted\r\n");
         } else {
-            printf("SD deinit failed: %s\r\n", esp_err_to_name(err));
+            printf("SD unmount failed: %s\r\n", esp_err_to_name(err));
         }
         return 0;
     }
@@ -293,5 +284,73 @@ static int cmd_sd(int argc, char **argv)
     }
 
     printf("Unknown sd subcommand\r\n");
+    return 0;
+}
+
+/* ------------------------- I2C ------------------------- */
+static int cmd_i2c(int argc, char **argv)
+{
+    esp_err_t err;
+
+    if (argc < 2) {
+        printf("Usage:\r\n");
+        printf("  i2c scan <0|1>\r\n");
+        printf("  i2c probe <0|1> <addr>\r\n");
+        printf("Examples:\r\n");
+        printf("  i2c scan 0\r\n");
+        printf("  i2c probe 1 0x20\r\n");
+        return 0;
+    }
+
+    if (!strcmp(argv[1], "scan")) {
+        if (argc < 3) {
+            printf("Usage: i2c scan <0|1>\r\n");
+            return 0;
+        }
+
+        int bus_num = atoi(argv[2]);
+        if (bus_num != 0 && bus_num != 1) {
+            printf("Invalid bus. Use 0 or 1\r\n");
+            return 0;
+        }
+
+        err = i2c_bus_scan((bus_num == 0) ? I2C_BUS_0 : I2C_BUS_1);
+        if (err != ESP_OK) {
+            printf("I2C scan failed: %s\r\n", esp_err_to_name(err));
+        }
+        return 0;
+    }
+
+    if (!strcmp(argv[1], "probe")) {
+        if (argc < 4) {
+            printf("Usage: i2c probe <0|1> <addr>\r\n");
+            printf("Example: i2c probe 0 0x18\r\n");
+            return 0;
+        }
+
+        int bus_num = atoi(argv[2]);
+        if (bus_num != 0 && bus_num != 1) {
+            printf("Invalid bus. Use 0 or 1\r\n");
+            return 0;
+        }
+
+        char *endptr = NULL;
+        long addr = strtol(argv[3], &endptr, 0);
+        if ((endptr == argv[3]) || (addr < 0x08) || (addr > 0x77)) {
+            printf("Invalid I2C address. Use 0x08..0x77\r\n");
+            return 0;
+        }
+
+        err = i2c_bus_probe((bus_num == 0) ? I2C_BUS_0 : I2C_BUS_1, (uint8_t)addr);
+        if (err == ESP_OK) {
+            printf("Device found on bus %d at address 0x%02lX\r\n", bus_num, addr);
+        } else {
+            printf("No response on bus %d at address 0x%02lX (%s)\r\n",
+                   bus_num, addr, esp_err_to_name(err));
+        }
+        return 0;
+    }
+
+    printf("Unknown i2c subcommand\r\n");
     return 0;
 }

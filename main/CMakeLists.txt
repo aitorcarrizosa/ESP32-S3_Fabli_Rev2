@@ -3,9 +3,10 @@ idf_component_register(
     INCLUDE_DIRS "."
     REQUIRES 
         board 
-        gpio_ctrl
-        sdcard_ctrl
         console
         vfs
         esp_driver_uart
+        gpio_ctrl
+        sdcard_ctrl
+        i2c_bus
 )

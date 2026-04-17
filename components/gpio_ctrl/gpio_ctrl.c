@@ -3,14 +3,14 @@
 #include "board.h"
 
 #include "driver/gpio.h"
-#include "esp_check.h"
+#include "esp_err.h"
 #include "esp_log.h"
 
 static const char *TAG = "gpio_ctrl";
 
 static bool s_test_toggle_state = false;
 
-void gpio_ctrl_init(void)
+esp_err_t gpio_ctrl_init(void)
 {
     esp_err_t ret;
 
@@ -28,7 +28,10 @@ void gpio_ctrl_init(void)
     };
 
     ret = gpio_config(&out_conf);
-    ESP_ERROR_CHECK(ret);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to configure output GPIOs: %s", esp_err_to_name(ret));
+        return ret;
+    }
 
     // -------------------------------------------------------------------------
     // Configure inputs
@@ -46,17 +49,36 @@ void gpio_ctrl_init(void)
     };
 
     ret = gpio_config(&in_conf);
-    ESP_ERROR_CHECK(ret);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to configure input GPIOs: %s", esp_err_to_name(ret));
+        return ret;
+    }
 
     // -------------------------------------------------------------------------
     // Safe initial output states
     // -------------------------------------------------------------------------
-    gpio_ctrl_set_pwr_on(true);
-    gpio_ctrl_set_led_enable(false);
-    gpio_ctrl_set_led_reset(true);
+    ret = gpio_set_level(PIN_PWR_ON, 1);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set PWR_ON: %s", esp_err_to_name(ret));
+        return ret;
+    }
+
+    ret = gpio_set_level(PIN_LED_EN, 0);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set LED_EN: %s", esp_err_to_name(ret));
+        return ret;
+    }
+
+    ret = gpio_set_level(PIN_LED_RESET_N, 1);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set LED_nRESET: %s", esp_err_to_name(ret));
+        return ret;
+    }
 
     ESP_LOGI(TAG, "GPIO control initialized");
     gpio_ctrl_print_status();
+
+    return ESP_OK;
 }
 
 void gpio_ctrl_set_pwr_on(bool on)

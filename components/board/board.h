@@ -21,20 +21,20 @@ extern "C" {
 #define PIN_FUSB_INT_N      ((gpio_num_t)CONFIG_BOARD_PIN_FUSB_INT_N)
 #define PIN_MEMS_INT1       ((gpio_num_t)CONFIG_BOARD_PIN_MEMS_INT1)
 
-#define PIN_VBAT_ADC        ((gpio_num_t)CONFIG_BOARD_PIN_VBAT_ADC)
-#define PIN_REV_ADC         ((gpio_num_t)CONFIG_BOARD_PIN_REV_ADC)
+#define PIN_VBAT_ADC        ((gpio_num_t)CONFIG_BOARD_VBAT_ADC_PIN)
+#define PIN_REV_ADC         ((gpio_num_t)CONFIG_BOARD_REV_ADC_PIN)
 
-#define PIN_I2C0_SDA        ((gpio_num_t)CONFIG_BOARD_PIN_I2C0_SDA)
-#define PIN_I2C0_SCL        ((gpio_num_t)CONFIG_BOARD_PIN_I2C0_SCL)
-#define PIN_I2C1_SDA        ((gpio_num_t)CONFIG_BOARD_PIN_I2C1_SDA)
-#define PIN_I2C1_SCL        ((gpio_num_t)CONFIG_BOARD_PIN_I2C1_SCL)
+#define PIN_I2C0_SDA        ((gpio_num_t)CONFIG_BOARD_I2C0_SDA_PIN)
+#define PIN_I2C0_SCL        ((gpio_num_t)CONFIG_BOARD_I2C0_SCL_PIN)
+#define PIN_I2C1_SDA        ((gpio_num_t)CONFIG_BOARD_I2C1_SDA_PIN)
+#define PIN_I2C1_SCL        ((gpio_num_t)CONFIG_BOARD_I2C1_SCL_PIN)
 
-#define PIN_DEBUG_TX        ((gpio_num_t)CONFIG_BOARD_PIN_DEBUG_TX)
-#define PIN_DEBUG_RX        ((gpio_num_t)CONFIG_BOARD_PIN_DEBUG_RX)
+#define PIN_DEBUG_TX        ((gpio_num_t)CONFIG_BOARD_UART0_TX_PIN)
+#define PIN_DEBUG_RX        ((gpio_num_t)CONFIG_BOARD_UART0_RX_PIN)
 
-#define PIN_ENCODER_A       ((gpio_num_t)CONFIG_BOARD_PIN_ENCODER_A)
-#define PIN_ENCODER_B       ((gpio_num_t)CONFIG_BOARD_PIN_ENCODER_B)
-#define PIN_ENCODER_SW_N    ((gpio_num_t)CONFIG_BOARD_PIN_ENCODER_SW_N)
+#define PIN_ENCODER_A       ((gpio_num_t)CONFIG_BOARD_ENCODER_A_PIN)
+#define PIN_ENCODER_B       ((gpio_num_t)CONFIG_BOARD_ENCODER_B_PIN)
+#define PIN_ENCODER_SW_N    ((gpio_num_t)CONFIG_BOARD_ENCODER_SW_N_PIN)
 
 #define BOARD_SD_D0_PIN     ((gpio_num_t)CONFIG_BOARD_SD_D0_PIN)
 #define BOARD_SD_D1_PIN     ((gpio_num_t)CONFIG_BOARD_SD_D1_PIN)

@@ -2,11 +2,13 @@
 
 #include <stdbool.h>
 
+#include "esp_err.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void gpio_ctrl_init(void);
+esp_err_t gpio_ctrl_init(void);
 
 // Outputs
 void gpio_ctrl_set_pwr_on(bool on);
