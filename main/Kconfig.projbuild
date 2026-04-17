@@ -1,2 +1,15 @@
-menu "Main application configuration"
+menu "Main Fabli configuration"
+
+    choice
+        prompt "Console output"
+        default FABLI_CONSOLE_UART
+
+        config FABLI_CONSOLE_UART
+            bool "Serial Debug"
+
+        config FABLI_CONSOLE_USB
+            bool "USB"
+
+    endchoice
+
 endmenu

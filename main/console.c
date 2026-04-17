@@ -57,11 +57,11 @@ static void register_commands(void)
     };
 
     const esp_console_cmd_t cmd_i2c_def = {
-    .command = "i2c",
-    .help = "I2C bus control and scan",
-    .hint = NULL,
-    .func = &cmd_i2c,
-    .argtable = NULL,
+        .command = "i2c",
+        .help = "I2C bus control and scan",
+        .hint = NULL,
+        .func = &cmd_i2c,
+        .argtable = NULL,
 };
 
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_reset_def));
@@ -181,8 +181,9 @@ static int uart_readline_echo(uart_port_t uart, char *out, int out_sz)
     }
 }
 
-void console_start_uart0(void)
+void console_start(void)
 {
+#if CONFIG_FABLI_CONSOLE_UART
     const uart_port_t console_uart = (uart_port_t)CONFIG_ESP_CONSOLE_UART_NUM;
 
     const uart_config_t uart_cfg = {
@@ -240,6 +241,27 @@ void console_start_uart0(void)
         printf("ESP32-S3_Fabli_Rev2> ");
         fflush(stdout);
     }
+#elif CONFIG_FABLI_CONSOLE_USB
+    esp_err_t err;
+
+    esp_console_repl_config_t repl_cfg = ESP_CONSOLE_REPL_CONFIG_DEFAULT();
+    repl_cfg.prompt = "ESP32-S3_Fabli_Rev2> ";
+    repl_cfg.max_cmdline_length = 256;
+
+    esp_console_dev_usb_serial_jtag_config_t usb_cfg = { 0 };
+    esp_console_repl_t *repl = NULL;
+
+    err = esp_console_new_repl_usb_serial_jtag(&usb_cfg, &repl_cfg, &repl);
+    ESP_ERROR_CHECK(err);
+
+    register_commands();
+
+    err = esp_console_start_repl(repl);
+    ESP_ERROR_CHECK(err);
+
+#else
+#error "No console backend selected"
+#endif
 }
 
 /* ------------------------- SD card ------------------------- */

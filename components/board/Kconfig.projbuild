@@ -1,4 +1,4 @@
-menu "Board configuration"
+menu "Board PINOUT configuration"
     depends on IDF_TARGET_ESP32S3
 
     # -------------------------------------------------------------------------

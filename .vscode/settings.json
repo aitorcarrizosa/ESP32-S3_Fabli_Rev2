@@ -9,4 +9,5 @@
     "idf.customExtraVars": {
     "IDF_TARGET": "esp32s3"
   },
+  "C_Cpp.dimInactiveRegions": false,
 }

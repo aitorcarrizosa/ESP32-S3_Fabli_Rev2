@@ -7,14 +7,15 @@
 #include "gpio_ctrl.h"
 #include "i2c_bus.h"
 
-void console_start_uart0(void);
+void console_start(void);
 
 static const char *TAG = "ESP32-S3_Fabli_Rev2";
 
 static void console_task(void *arg)
 {
     (void)arg;
-    console_start_uart0();
+    console_start();
+    vTaskDelete(NULL);
 }
 
 void app_main(void)
