@@ -159,3 +159,81 @@ esp_err_t i2c_bus_scan(i2c_bus_id_t bus_id)
 
     return ESP_OK;
 }
+
+esp_err_t i2c_bus_read_reg(i2c_bus_id_t bus, uint8_t dev_addr, uint8_t reg, uint8_t *value)
+{
+    if (value == NULL) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    i2c_master_bus_handle_t bus_handle = i2c_bus_get_handle(bus);
+    if (bus_handle == NULL) {
+        return ESP_ERR_INVALID_STATE;
+    }
+
+    i2c_device_config_t dev_cfg = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = dev_addr,
+        .scl_speed_hz = 100000,
+    };
+
+    i2c_master_dev_handle_t dev_handle = NULL;
+    esp_err_t ret = i2c_master_bus_add_device(bus_handle, &dev_cfg, &dev_handle);
+    if (ret != ESP_OK) {
+        return ret;
+    }
+
+    uint8_t reg_buf = reg;
+
+    ret = i2c_master_transmit_receive(
+        dev_handle,
+        &reg_buf,
+        1,
+        value,
+        1,
+        100
+    );
+
+    esp_err_t remove_ret = i2c_master_bus_rm_device(dev_handle);
+    if (ret == ESP_OK && remove_ret != ESP_OK) {
+        return remove_ret;
+    }
+
+    return ret;
+}
+
+esp_err_t i2c_bus_write_reg(i2c_bus_id_t bus, uint8_t dev_addr, uint8_t reg, uint8_t value)
+{
+    i2c_master_bus_handle_t bus_handle = i2c_bus_get_handle(bus);
+    if (bus_handle == NULL) {
+        return ESP_ERR_INVALID_STATE;
+    }
+
+    i2c_device_config_t dev_cfg = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = dev_addr,
+        .scl_speed_hz = 100000,
+    };
+
+    i2c_master_dev_handle_t dev_handle = NULL;
+    esp_err_t ret = i2c_master_bus_add_device(bus_handle, &dev_cfg, &dev_handle);
+    if (ret != ESP_OK) {
+        return ret;
+    }
+
+    uint8_t buf[2] = { reg, value };
+
+    ret = i2c_master_transmit(
+        dev_handle,
+        buf,
+        sizeof(buf),
+        100
+    );
+
+    esp_err_t remove_ret = i2c_master_bus_rm_device(dev_handle);
+    if (ret == ESP_OK && remove_ret != ESP_OK) {
+        return remove_ret;
+    }
+
+    return ret;
+}

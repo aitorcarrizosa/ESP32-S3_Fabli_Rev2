@@ -9,4 +9,5 @@ idf_component_register(
         gpio_ctrl
         sdcard_ctrl
         i2c_bus
+        usb_ctrl
 )

@@ -16,12 +16,14 @@
 #include "gpio_ctrl.h"
 #include "sdcard_ctrl.h"
 #include "i2c_bus.h"
+#include "usb_ctrl.h"
 
 /* Command handlers */
 static int cmd_reset(int argc, char **argv);
 static int cmd_gpio(int argc, char **argv);
 static int cmd_sd(int argc, char **argv);
 static int cmd_i2c(int argc, char **argv);
+static int cmd_usb(int argc, char **argv);
 
 /* Internal helpers */
 static void register_commands(void);
@@ -64,10 +66,19 @@ static void register_commands(void)
         .argtable = NULL,
     };
 
+    const esp_console_cmd_t cmd_usb_def = {
+        .command = "usb",
+        .help = "USB Type-C controller and connector control",
+        .hint = NULL,
+        .func = &cmd_usb,
+        .argtable = NULL,
+    };
+
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_reset_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_gpio_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_sd_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_i2c_def));
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_usb_def));
 }
 
 /* ------------------------- Reset command ------------------------ */
@@ -374,5 +385,57 @@ static int cmd_i2c(int argc, char **argv)
     }
 
     printf("Unknown i2c subcommand\r\n");
+    return 0;
+}
+
+/* ------------------------- USB ------------------------- */
+static int cmd_usb(int argc, char **argv)
+{
+    esp_err_t err;
+
+    if (argc < 2) {
+        printf("Usage:\r\n");
+        printf("  usb status\r\n");
+        printf("  usb mode usb\r\n");
+        printf("  usb mode audio\r\n");
+        return 0;
+    }
+
+    if (!strcmp(argv[1], "status")) {
+        err = usb_ctrl_print_status();
+        if (err != ESP_OK) {
+            printf("USB status failed: %s\r\n", esp_err_to_name(err));
+        }
+        return 0;
+    }
+
+    if (!strcmp(argv[1], "mode")) {
+        if (argc < 3) {
+            printf("Usage: usb mode <usb|audio>\r\n");
+            return 0;
+        }
+
+        if (!strcmp(argv[2], "usb")) {
+            err = usb_ctrl_set_mode_usb();
+            if (err == ESP_OK) {
+                printf("USB connector set to USB mode\r\n");
+            } else {
+                printf("Failed to set USB mode: %s\r\n", esp_err_to_name(err));
+            }
+            return 0;
+        }
+
+        if (!strcmp(argv[2], "audio")) {
+            err = usb_ctrl_set_mode_audio();
+            if (err == ESP_OK) {
+                printf("USB connector set to audio mode\r\n");
+            } else {
+                printf("Failed to set audio mode: %s\r\n", esp_err_to_name(err));
+            }
+            return 0;
+        }
+    }
+
+    printf("Unknown usb subcommand\r\n");
     return 0;
 }

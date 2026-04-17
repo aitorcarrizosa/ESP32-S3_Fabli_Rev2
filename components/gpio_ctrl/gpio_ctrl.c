@@ -149,18 +149,3 @@ void gpio_ctrl_print_status(void)
              gpio_ctrl_get_led_fault2_n(),
              gpio_ctrl_get_usb_src());
 }
-
-void gpio_ctrl_test_toggle(void)
-{
-    s_test_toggle_state = !s_test_toggle_state;
-
-    gpio_ctrl_set_led_enable(s_test_toggle_state);
-    gpio_ctrl_set_led_reset(!s_test_toggle_state);
-
-    ESP_LOGI(TAG,
-             "Test toggle: LED_EN=%d LED_nRESET=%d",
-             s_test_toggle_state,
-             !s_test_toggle_state);
-
-    gpio_ctrl_print_status();
-}

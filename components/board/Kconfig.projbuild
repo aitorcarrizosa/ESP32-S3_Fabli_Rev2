@@ -170,5 +170,10 @@ menu "Board PINOUT configuration"
         int "GPIO for FUSB_ID"
         range 0 48
         default 7
+    
+    config BOARD_PIN_AUDIO_SEL
+        int "GPIO for AUDIO_SEL"
+        range 0 48
+        default 45
 
 endmenu
