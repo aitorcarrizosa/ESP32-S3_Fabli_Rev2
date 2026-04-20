@@ -78,7 +78,7 @@ static void register_commands(void)
 
     const esp_console_cmd_t cmd_usb_def = {
         .command = "usb",
-        .help = "USB Type-C controller and connector control",
+        .help = "USB connector control and status",
         .hint = NULL,
         .func = &cmd_usb,
         .argtable = NULL,
@@ -395,11 +395,9 @@ static int cmd_i2c(int argc, char **argv)
     return 0;
 }
 
-/* ------------------------- USB ------------------------- */
+/* ------------------------- USB command ------------------------- */
 static int cmd_usb(int argc, char **argv)
 {
-    esp_err_t err;
-
     if (argc < 2) {
         printf("Usage:\r\n");
         printf("  usb status\r\n");
@@ -408,19 +406,13 @@ static int cmd_usb(int argc, char **argv)
         return 0;
     }
 
-    if (!strcmp(argv[1], "status")) {
-        err = usb_ctrl_print_status();
-        if (err != ESP_OK) {
-            printf("USB status failed: %s\r\n", esp_err_to_name(err));
-        }
+    if (argc == 2 && !strcmp(argv[1], "status")) {
+        usb_ctrl_print_status();
         return 0;
     }
 
-    if (!strcmp(argv[1], "mode")) {
-        if (argc < 3) {
-            printf("Usage: usb mode <usb|audio>\r\n");
-            return 0;
-        }
+    if (argc == 3 && !strcmp(argv[1], "mode")) {
+        esp_err_t err;
 
         if (!strcmp(argv[2], "usb")) {
             err = usb_ctrl_set_mode_usb();
