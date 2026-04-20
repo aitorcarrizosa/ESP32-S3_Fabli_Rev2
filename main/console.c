@@ -100,56 +100,10 @@ static int cmd_gpio(int argc, char **argv)
     if (argc < 2) {
         printf("Usage:\r\n");
         printf("  gpio status\r\n");
-        printf("  gpio pwr on|off\r\n");
-        printf("  gpio led_en on|off\r\n");
-        printf("  gpio led_rst release|assert\r\n");
         return 0;
     }
-
-    if (!strcmp(argv[1], "status")) {
-        gpio_ctrl_print_status();
-        return 0;
-    }
-
-    if (argc < 3) {
-        printf("Missing argument\r\n");
-        return 0;
-    }
-
-    if (!strcmp(argv[1], "pwr")) {
-        if (!strcmp(argv[2], "on")) {
-            gpio_ctrl_set_pwr_on(true);
-        } else if (!strcmp(argv[2], "off")) {
-            gpio_ctrl_set_pwr_on(false);
-        } else {
-            printf("Usage: gpio pwr on|off\r\n");
-        }
-        return 0;
-    }
-
-    if (!strcmp(argv[1], "led_en")) {
-        if (!strcmp(argv[2], "on")) {
-            gpio_ctrl_set_led_enable(true);
-        } else if (!strcmp(argv[2], "off")) {
-            gpio_ctrl_set_led_enable(false);
-        } else {
-            printf("Usage: gpio led_en on|off\r\n");
-        }
-        return 0;
-    }
-
-    if (!strcmp(argv[1], "led_rst")) {
-        if (!strcmp(argv[2], "release")) {
-            gpio_ctrl_set_led_reset(true);
-        } else if (!strcmp(argv[2], "assert")) {
-            gpio_ctrl_set_led_reset(false);
-        } else {
-            printf("Usage: gpio led_rst release|assert\r\n");
-        }
-        return 0;
-    }
-
-    printf("Unknown gpio subcommand\r\n");
+    
+    gpio_ctrl_print_status();
     return 0;
 }
 
