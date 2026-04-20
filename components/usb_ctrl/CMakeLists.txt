@@ -3,5 +3,6 @@ idf_component_register(
     INCLUDE_DIRS "."
     REQUIRES 
         board 
-        gpio_ctrl 
+        gpio_ctrl
+        i2c_bus 
 )
