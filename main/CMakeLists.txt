@@ -7,6 +7,7 @@ idf_component_register(
         vfs
         esp_driver_uart
         gpio_ctrl
+        power_ctrl
         sdcard_ctrl
         i2c_bus
         usb_ctrl

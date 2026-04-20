@@ -14,6 +14,7 @@
 #include "driver/uart.h"
 
 #include "gpio_ctrl.h"
+#include "power_ctrl.h"
 #include "sdcard_ctrl.h"
 #include "i2c_bus.h"
 #include "usb_ctrl.h"
@@ -21,6 +22,7 @@
 /* Command handlers */
 static int cmd_reset(int argc, char **argv);
 static int cmd_gpio(int argc, char **argv);
+static int cmd_power(int argc, char **argv);
 static int cmd_sd(int argc, char **argv);
 static int cmd_i2c(int argc, char **argv);
 static int cmd_usb(int argc, char **argv);
@@ -50,6 +52,14 @@ static void register_commands(void)
         .argtable = NULL,
     };
 
+    const esp_console_cmd_t cmd_power_def = {
+        .command = "power",
+        .help = "Power control and status",
+        .hint = NULL,
+        .func = &cmd_power,
+        .argtable = NULL,
+    };
+
     const esp_console_cmd_t cmd_sd_def = {
         .command = "sd",
         .help = "SD card control",
@@ -76,6 +86,7 @@ static void register_commands(void)
 
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_reset_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_gpio_def));
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_power_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_sd_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_i2c_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_usb_def));
@@ -104,6 +115,48 @@ static int cmd_gpio(int argc, char **argv)
     }
     
     gpio_ctrl_print_status();
+    return 0;
+}
+
+/* ------------------------- Power command ------------------------- */
+static int cmd_power(int argc, char **argv)
+{
+    esp_err_t err;
+
+    if (argc < 2) {
+        printf("Usage:\r\n");
+        printf("  power status\r\n");
+        printf("  power on\r\n");
+        printf("  power off\r\n");
+        return 0;
+    }
+
+    if (!strcmp(argv[1], "status")) {
+        power_ctrl_print_status();
+        return 0;
+    }
+
+    if (!strcmp(argv[1], "on")) {
+        err = power_ctrl_set_on();
+        if (err == ESP_OK) {
+            printf("PWR_ON set to HIGH\r\n");
+        } else {
+            printf("Failed to set PWR_ON HIGH: %s\r\n", esp_err_to_name(err));
+        }
+        return 0;
+    }
+
+    if (!strcmp(argv[1], "off")) {
+        err = power_ctrl_set_off();
+        if (err == ESP_OK) {
+            printf("PWR_ON set to LOW\r\n");
+        } else {
+            printf("Failed to set PWR_ON LOW: %s\r\n", esp_err_to_name(err));
+        }
+        return 0;
+    }
+
+    printf("Unknown power subcommand\r\n");
     return 0;
 }
 

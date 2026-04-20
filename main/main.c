@@ -7,6 +7,7 @@
 #include "gpio_ctrl.h"
 #include "i2c_bus.h"
 #include "usb_ctrl.h"
+#include "power_ctrl.h"
 
 void console_start(void);
 
@@ -25,6 +26,7 @@ void app_main(void)
 
     board_init();
     ESP_ERROR_CHECK(gpio_ctrl_init());
+    ESP_ERROR_CHECK(power_ctrl_init());
     ESP_ERROR_CHECK(i2c_bus_init());
     ESP_ERROR_CHECK(usb_ctrl_init());
 
