@@ -4,5 +4,6 @@ idf_component_register(
     REQUIRES 
         board 
         gpio_ctrl
-        i2c_bus 
+        i2c_bus
+        unity
 )

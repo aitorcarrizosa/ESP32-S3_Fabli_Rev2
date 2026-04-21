@@ -472,12 +472,7 @@ static int cmd_led(int argc, char **argv)
     }
 
     if (argc == 2 && !strcmp(argv[1], "test")) {
-        esp_err_t err = led_ctrl_run_test();
-        if (err == ESP_OK) {
-            printf("LED test completed successfully\r\n");
-        } else {
-            printf("LED test failed: %s\r\n", esp_err_to_name(err));
-        }
+        led_ctrl_run_test();
         return 0;
     }
 

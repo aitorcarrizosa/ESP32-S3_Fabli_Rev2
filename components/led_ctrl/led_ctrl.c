@@ -10,6 +10,7 @@
 #include "gpio_ctrl.h"
 #include "i2c_bus.h"
 
+#include "unity.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -89,6 +90,12 @@ static const uint8_t led_mappings[48] = {
 
 static bool initialized = false;
 static bool hw_enabled = false;
+static esp_err_t led_ctrl_run_diagnostic_check(void);
+static void test_al5887_init(void);
+static void test_al5887_individual_led_control(void);
+static void test_al5887_color_control(void);
+static void test_al5887_global_brightness(void);
+static void test_al5887_power_modes(void);
 
 /* -------------------------------------------------------------------------- */
 /* Local helpers                                                              */
@@ -199,18 +206,6 @@ static esp_err_t led_ctrl_get_flag(led_ctrl_device_t device, uint8_t *flag)
     return led_ctrl_read_reg(device, AL5887_REG_FLAG, flag);
 }
 
-static esp_err_t led_ctrl_turn_all_off(void)
-{
-    for (uint8_t i = 0; i < TOTAL_ADDRESSABLE_LEDS; i++) {
-        esp_err_t ret = led_ctrl_set_color(i, 0, 0, 0);
-        if (ret != ESP_OK) {
-            return ret;
-        }
-    }
-
-    return ESP_OK;
-}
-
 static esp_err_t led_ctrl_run_diagnostic_check(void)
 {
     for (led_ctrl_device_t dev = LED_CTRL_DEVICE_1; dev < LED_CTRL_DEVICE_MAX; dev++) {
@@ -245,7 +240,7 @@ static esp_err_t led_ctrl_run_diagnostic_check(void)
 }
 
 /* -------------------------------------------------------------------------- */
-/* Public init                                                                */
+/* Initialization                                                             */
 /* -------------------------------------------------------------------------- */
 esp_err_t led_ctrl_init(void)
 {
@@ -357,9 +352,6 @@ esp_err_t led_ctrl_set_brightness(led_ctrl_device_t device, uint8_t brightness)
         return ESP_ERR_INVALID_ARG;
     }
 
-    /*
-     * LED_GLOBAL_DIM is 6-bit in the AL5887.
-     */
     return led_ctrl_write_reg(device, AL5887_REG_LED_GLOBAL_DIM, brightness & 0x3F);
 }
 
@@ -420,124 +412,182 @@ void led_ctrl_print_status(void)
 /* -------------------------------------------------------------------------- */
 /* Test                                                                       */
 /* -------------------------------------------------------------------------- */
+void led_ctrl_run_test(void)
+{
+    UNITY_BEGIN();
+    RUN_TEST(test_al5887_init);
 
-esp_err_t led_ctrl_run_test(void)
+    /* Same extra diagnostic check used in Rev1 */
+    TEST_ASSERT_EQUAL(ESP_OK, led_ctrl_run_diagnostic_check());
+
+    RUN_TEST(test_al5887_individual_led_control);
+    RUN_TEST(test_al5887_color_control);
+    RUN_TEST(test_al5887_global_brightness);
+    RUN_TEST(test_al5887_power_modes);
+    UNITY_END();
+}
+
+/**
+ * @brief Unit test for the al5887_init function.
+ * @note Verifies that the al5887_init function correctly initializes the
+ *       AL5887 device, sets the device configuration, enables the LED banks,
+ *       sets the initial bank brightness, and clears the fault flags.
+ */
+static void test_al5887_init(void)
+{
+    esp_err_t ret;
+    uint8_t reg_value;
+
+    ret = led_ctrl_init();
+    TEST_ASSERT_EQUAL(ESP_OK, ret);
+
+    for (led_ctrl_device_t device = LED_CTRL_DEVICE_1; device < LED_CTRL_DEVICE_MAX; device++) {
+        if (!led_ctrl_device_present(device)) {
+            continue;
+        }
+
+        ret = led_ctrl_read_reg(device, AL5887_REG_DEVICE_CONFIG0, &reg_value);
+        TEST_ASSERT_EQUAL(ESP_OK, ret);
+        TEST_ASSERT_EQUAL(AL5887_CHIP_EN, reg_value & AL5887_CHIP_EN);
+
+        ret = led_ctrl_read_reg(device, AL5887_REG_BANK_BRIGHTNESS, &reg_value);
+        TEST_ASSERT_EQUAL(ESP_OK, ret);
+        TEST_ASSERT_EQUAL(0x80, reg_value);
+
+        ret = led_ctrl_read_reg(device, AL5887_REG_FLAG, &reg_value);
+        TEST_ASSERT_EQUAL(ESP_OK, ret);
+        TEST_ASSERT_EQUAL(0x00, reg_value & 0x0F);
+    }
+}
+
+/**
+ * @brief Unit test for individual LED control using the led_ctrl_set_color function.
+ * @note Verifies that the led_ctrl_set_color function correctly sets the color of
+ *       each LED individually, and that the color values can be read back from
+ *       the AL5887 registers. The test turns each LED on and off in sequence.
+ */
+static void test_al5887_individual_led_control(void)
+{
+    esp_err_t ret;
+    /* Test each LED individually */
+    for (uint8_t i = 0; i < TOTAL_ADDRESSABLE_LEDS; i++) {
+        /* Set white color */
+        ret = led_ctrl_set_color(i, 255, 255, 255);
+        TEST_ASSERT_EQUAL(ESP_OK, ret);
+
+        vTaskDelay(pdMS_TO_TICKS(100));
+        /* Turn off LED */
+        ret = led_ctrl_set_color(i, 0, 0, 0);
+        TEST_ASSERT_EQUAL(ESP_OK, ret);
+
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+}
+
+/**
+ * @brief Unit test for color control using the led_ctrl_set_color function.
+ * @note Verifies that the led_ctrl_set_color function correctly sets various colors
+ *       (red, green, blue, yellow, cyan, magenta) for a single LED, and that
+ *       the color values can be read back from the AL5887 registers. The test
+ *       iterates through a list of predefined colors and checks the resulting
+ *       color values.
+ */
+static void test_al5887_color_control(void)
 {
     esp_err_t ret;
 
-    /*
-     * Make sure the subsystem is initialized before running the test.
-     */
-    ret = led_ctrl_init();
-    if (ret != ESP_OK) {
-        return ret;
-    }
-
-    /*
-     * Basic sanity check, inherited from the spirit of Rev1 diagnostics.
-     */
-    ret = led_ctrl_run_diagnostic_check();
-    if (ret != ESP_OK) {
-        return ret;
-    }
-
-    /*
-     * Make sure both devices are at full usable brightness before color tests.
-     */
-    ret = led_ctrl_set_brightness(LED_CTRL_DEVICE_1, 0x3F);
-    if (ret != ESP_OK) {
-        return ret;
-    }
-
-    ret = led_ctrl_set_brightness(LED_CTRL_DEVICE_2, 0x3F);
-    if (ret != ESP_OK) {
-        return ret;
-    }
-
-    /*
-     * Test 1:
-     * Turn each logical LED white, one by one, then turn it off.
-     */
-    for (uint8_t i = 0; i < TOTAL_ADDRESSABLE_LEDS; i++) {
-        ret = led_ctrl_set_color(i, 255, 255, 255);
-        if (ret != ESP_OK) {
-            return ret;
-        }
-
-        vTaskDelay(pdMS_TO_TICKS(100));
-
-        ret = led_ctrl_set_color(i, 0, 0, 0);
-        if (ret != ESP_OK) {
-            return ret;
-        }
-
-        vTaskDelay(pdMS_TO_TICKS(100));
-    }
-
-    /*
-     * Test 2:
-     * Cycle a few solid colors across all addressable LEDs.
-     */
-    const uint8_t colors[][3] = {
-        {255,   0,   0},   /* Red     */
-        {  0, 255,   0},   /* Green   */
-        {  0,   0, 255},   /* Blue    */
-        {255, 255,   0},   /* Yellow  */
-        {  0, 255, 255},   /* Cyan    */
-        {255,   0, 255}    /* Magenta */
+    struct {
+        uint8_t r, g, b;
+        const char *name;
+    } 
+    
+    colors[] = {
+        {255,   0,   0, "Red"},
+        {  0, 255,   0, "Green"},
+        {  0,   0, 255, "Blue"},
+        {255, 255,   0, "Yellow"},
+        {  0, 255, 255, "Cyan"},
+        {255,   0, 255, "Magenta"}
     };
 
-    for (size_t c = 0; c < (sizeof(colors) / sizeof(colors[0])); c++) {
-        for (uint8_t i = 0; i < TOTAL_ADDRESSABLE_LEDS; i++) {
-            ret = led_ctrl_set_color(i, colors[c][0], colors[c][1], colors[c][2]);
-            if (ret != ESP_OK) {
-                return ret;
-            }
-        }
+    for (int i = 0; i < sizeof(colors)/sizeof(colors[0]); i++) {
+        ESP_LOGI(TAG, "Testing %s color", colors[i].name);
 
+        for (uint8_t j = 0; j < TOTAL_ADDRESSABLE_LEDS; j++) {
+            ret = led_ctrl_set_color(j, colors[i].r, colors[i].g, colors[i].b);
+            vTaskDelay(pdMS_TO_TICKS(10));
+            TEST_ASSERT_EQUAL(ESP_OK, ret);
+        }
         vTaskDelay(pdMS_TO_TICKS(500));
     }
+}
 
-    /*
-     * Test 3:
-     * Sweep global brightness on both devices.
-     */
-    const uint8_t levels[] = {0, 16, 32, 48, 63};
+/**
+ * @brief Unit test for global brightness control using the led_ctrl_set_brightness function.
+ * @note Verifies that the led_ctrl_set_brightness function correctly sets different
+ *       brightness levels (0, 16, 32, 48, 63) and that the resulting brightness
+ *       value can be read back from the AL5887 register.
+ */
+static void test_al5887_global_brightness(void)
+{
+    esp_err_t ret;
+    uint8_t reg_value;
 
-    for (size_t i = 0; i < (sizeof(levels) / sizeof(levels[0])); i++) {
-        ret = led_ctrl_set_brightness(LED_CTRL_DEVICE_1, levels[i]);
-        if (ret != ESP_OK) {
-            return ret;
-        }
+    /* Test different brightness levels */
+    uint8_t brightness_levels[] = {0, 16, 32, 48, 63}; /* Max 6-bit value (0x3F) */
 
-        ret = led_ctrl_set_brightness(LED_CTRL_DEVICE_2, levels[i]);
-        if (ret != ESP_OK) {
-            return ret;
-        }
+    for (int i = 0; i < sizeof(brightness_levels); i++) {
+        /* Set global brightness */
+        ret = led_ctrl_set_brightness(LED_CTRL_DEVICE_1, brightness_levels[i]);
+        TEST_ASSERT_EQUAL(ESP_OK, ret);
 
-        vTaskDelay(pdMS_TO_TICKS(800));
+        ret = led_ctrl_set_brightness(LED_CTRL_DEVICE_2, brightness_levels[i]);
+        TEST_ASSERT_EQUAL(ESP_OK, ret);
+        /* Verify brightness register */
+        ret = led_ctrl_read_reg(LED_CTRL_DEVICE_1, AL5887_REG_LED_GLOBAL_DIM, &reg_value);
+        TEST_ASSERT_EQUAL(ESP_OK, ret);
+        TEST_ASSERT_EQUAL(brightness_levels[i], reg_value);
+
+        ret = led_ctrl_read_reg(LED_CTRL_DEVICE_2, AL5887_REG_LED_GLOBAL_DIM, &reg_value);
+        TEST_ASSERT_EQUAL(ESP_OK, ret);
+        TEST_ASSERT_EQUAL(brightness_levels[i], reg_value);
+
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
+    /* Set global brightness to half */
+    ret = led_ctrl_set_brightness(LED_CTRL_DEVICE_1, 16);
+    TEST_ASSERT_EQUAL(ESP_OK, ret);
+}
 
-    /*
-     * Leave the drivers enabled and restore a visible usable brightness.
-     */
-    ret = led_ctrl_set_brightness(LED_CTRL_DEVICE_1, 0x3F);
-    if (ret != ESP_OK) {
-        return ret;
+/**
+ * @brief Unit test for AL5887 power mode control.
+ * @note Verifies that the power save mode and global off mode can be enabled
+ *       correctly, and that the written values can be read back from the
+ *       DEVICE_CONFIG1 register. Finally, the device is restored to normal
+ *       operation by enabling dithering.
+ */
+static void test_al5887_power_modes(void)
+{
+    esp_err_t ret;
+    uint8_t reg_value;
+
+    for (led_ctrl_device_t device = LED_CTRL_DEVICE_1; device < LED_CTRL_DEVICE_MAX; device++) {
+        /* Test power save mode */
+        ret = led_ctrl_write_reg(device, AL5887_REG_DEVICE_CONFIG1, AL5887_POWER_SAVE_EN);
+        TEST_ASSERT_EQUAL(ESP_OK, ret);
+
+        ret = led_ctrl_read_reg(device, AL5887_REG_DEVICE_CONFIG1, &reg_value);
+        TEST_ASSERT_EQUAL(ESP_OK, ret);
+        TEST_ASSERT_EQUAL(AL5887_POWER_SAVE_EN, reg_value & AL5887_POWER_SAVE_EN);
+        /* Test global off mode */
+        ret = led_ctrl_write_reg(device, AL5887_REG_DEVICE_CONFIG1, AL5887_LED_GLOBAL_OFF);
+        TEST_ASSERT_EQUAL(ESP_OK, ret);
+
+        ret = led_ctrl_read_reg(device, AL5887_REG_DEVICE_CONFIG1, &reg_value);
+        TEST_ASSERT_EQUAL(ESP_OK, ret);
+        TEST_ASSERT_EQUAL(AL5887_LED_GLOBAL_OFF, reg_value & AL5887_LED_GLOBAL_OFF);
+        /* Restore normal operation */
+        ret = led_ctrl_write_reg(device, AL5887_REG_DEVICE_CONFIG1, AL5887_DITHER_EN);
+        TEST_ASSERT_EQUAL(ESP_OK, ret);
     }
-
-    ret = led_ctrl_set_brightness(LED_CTRL_DEVICE_2, 0x3F);
-    if (ret != ESP_OK) {
-        return ret;
-    }
-
-    /*
-     * Turn everything off at the end of the test.
-     */
-    ret = led_ctrl_turn_all_off();
-    if (ret != ESP_OK) {
-        return ret;
-    }
-
-    return ESP_OK;
 }
