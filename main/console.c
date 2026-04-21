@@ -18,6 +18,7 @@
 #include "sdcard_ctrl.h"
 #include "i2c_bus.h"
 #include "usb_ctrl.h"
+#include "led_ctrl.h"
 
 /* Command handlers */
 static int cmd_reset(int argc, char **argv);
@@ -26,6 +27,7 @@ static int cmd_power(int argc, char **argv);
 static int cmd_sd(int argc, char **argv);
 static int cmd_i2c(int argc, char **argv);
 static int cmd_usb(int argc, char **argv);
+static int cmd_led(int argc, char **argv);
 
 /* Internal helpers */
 static void register_commands(void);
@@ -84,12 +86,21 @@ static void register_commands(void)
         .argtable = NULL,
     };
 
+    const esp_console_cmd_t cmd_led_def = {
+        .command = "led",
+        .help = "LED control and test",
+        .hint = NULL,
+        .func = &cmd_led,
+        .argtable = NULL,
+    };
+
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_reset_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_gpio_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_power_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_sd_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_i2c_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_usb_def));
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_led_def));
 }
 
 /* ------------------------- Reset command ------------------------ */
@@ -436,5 +447,153 @@ static int cmd_usb(int argc, char **argv)
     }
 
     printf("Unknown usb subcommand\r\n");
+    return 0;
+}
+
+/* ------------------------- LED command ------------------------- */
+static int cmd_led(int argc, char **argv)
+{
+    if (argc < 2) {
+        printf("Usage:\r\n");
+        printf("  led status\r\n");
+        printf("  led en on\r\n");
+        printf("  led en off\r\n");
+        printf("  led reset assert\r\n");
+        printf("  led reset release\r\n");
+        printf("  led color <index> <r> <g> <b>\r\n");
+        printf("  led brightness <dev> <value>\r\n");
+        printf("  led test\r\n");
+        return 0;
+    }
+
+    if (argc == 2 && !strcmp(argv[1], "status")) {
+        led_ctrl_print_status();
+        return 0;
+    }
+
+    if (argc == 2 && !strcmp(argv[1], "test")) {
+        esp_err_t err = led_ctrl_run_test();
+        if (err == ESP_OK) {
+            printf("LED test completed successfully\r\n");
+        } else {
+            printf("LED test failed: %s\r\n", esp_err_to_name(err));
+        }
+        return 0;
+    }
+
+    if (argc == 3 && !strcmp(argv[1], "en")) {
+        esp_err_t err;
+
+        if (!strcmp(argv[2], "on")) {
+            err = led_ctrl_set_enable(true);
+            if (err == ESP_OK) {
+                printf("LED_EN set to HIGH\r\n");
+            } else {
+                printf("Failed to set LED_EN HIGH: %s\r\n", esp_err_to_name(err));
+            }
+            return 0;
+        }
+
+        if (!strcmp(argv[2], "off")) {
+            err = led_ctrl_set_enable(false);
+            if (err == ESP_OK) {
+                printf("LED_EN set to LOW\r\n");
+            } else {
+                printf("Failed to set LED_EN LOW: %s\r\n", esp_err_to_name(err));
+            }
+            return 0;
+        }
+    }
+
+    if (argc == 3 && !strcmp(argv[1], "reset")) {
+        esp_err_t err;
+
+        if (!strcmp(argv[2], "assert")) {
+            err = led_ctrl_set_reset(false);
+            if (err == ESP_OK) {
+                printf("LED_nRESET asserted\r\n");
+            } else {
+                printf("Failed to assert LED_nRESET: %s\r\n", esp_err_to_name(err));
+            }
+            return 0;
+        }
+
+        if (!strcmp(argv[2], "release")) {
+            err = led_ctrl_set_reset(true);
+            if (err == ESP_OK) {
+                printf("LED_nRESET released\r\n");
+            } else {
+                printf("Failed to release LED_nRESET: %s\r\n", esp_err_to_name(err));
+            }
+            return 0;
+        }
+    }
+
+    if (argc == 6 && !strcmp(argv[1], "color")) {
+        char *endptr = NULL;
+
+        long index = strtol(argv[2], &endptr, 0);
+        if (*endptr != '\0' || index < 0 || index > 255) {
+            printf("Invalid LED index\r\n");
+            return 0;
+        }
+
+        long red = strtol(argv[3], &endptr, 0);
+        if (*endptr != '\0' || red < 0 || red > 255) {
+            printf("Invalid red value\r\n");
+            return 0;
+        }
+
+        long green = strtol(argv[4], &endptr, 0);
+        if (*endptr != '\0' || green < 0 || green > 255) {
+            printf("Invalid green value\r\n");
+            return 0;
+        }
+
+        long blue = strtol(argv[5], &endptr, 0);
+        if (*endptr != '\0' || blue < 0 || blue > 255) {
+            printf("Invalid blue value\r\n");
+            return 0;
+        }
+
+        esp_err_t err = led_ctrl_set_color((uint8_t)index,
+                                           (uint8_t)red,
+                                           (uint8_t)green,
+                                           (uint8_t)blue);
+        if (err == ESP_OK) {
+            printf("LED %ld color set to R=%ld G=%ld B=%ld\r\n",
+                   index, red, green, blue);
+        } else {
+            printf("Failed to set LED color: %s\r\n", esp_err_to_name(err));
+        }
+        return 0;
+    }
+
+    if (argc == 4 && !strcmp(argv[1], "brightness")) {
+        char *endptr = NULL;
+
+        long dev = strtol(argv[2], &endptr, 0);
+        if (*endptr != '\0' || dev < 1 || dev > 2) {
+            printf("Invalid device. Use 1 or 2\r\n");
+            return 0;
+        }
+
+        long value = strtol(argv[3], &endptr, 0);
+        if (*endptr != '\0' || value < 0 || value > 63) {
+            printf("Invalid brightness value. Use 0..63\r\n");
+            return 0;
+        }
+
+        esp_err_t err = led_ctrl_set_brightness((dev == 1) ? LED_CTRL_DEVICE_1 : LED_CTRL_DEVICE_2,
+                                                (uint8_t)value);
+        if (err == ESP_OK) {
+            printf("LED device %ld brightness set to %ld\r\n", dev, value);
+        } else {
+            printf("Failed to set brightness: %s\r\n", esp_err_to_name(err));
+        }
+        return 0;
+    }
+
+    printf("Unknown led subcommand\r\n");
     return 0;
 }

@@ -11,4 +11,5 @@ idf_component_register(
         sdcard_ctrl
         i2c_bus
         usb_ctrl
+        led_ctrl
 )

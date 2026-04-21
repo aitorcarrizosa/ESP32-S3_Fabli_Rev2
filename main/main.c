@@ -8,6 +8,7 @@
 #include "i2c_bus.h"
 #include "usb_ctrl.h"
 #include "power_ctrl.h"
+#include "led_ctrl.h"
 
 void console_start(void);
 
@@ -29,6 +30,7 @@ void app_main(void)
     ESP_ERROR_CHECK(power_ctrl_init());
     ESP_ERROR_CHECK(i2c_bus_init());
     ESP_ERROR_CHECK(usb_ctrl_init());
+    ESP_ERROR_CHECK(led_ctrl_init());
 
     xTaskCreate(console_task, "console_task", 4096, NULL, 5, NULL);
 
