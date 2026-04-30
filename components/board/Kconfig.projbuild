@@ -157,7 +157,7 @@ menu "Board PINOUT configuration"
     # USB / FUSB302
     # -------------------------------------------------------------------------
     config BOARD_PIN_USB_SRC
-    int "GPIO for USB_SRC"
+        int "GPIO for USB_SRC"
         range 0 48
         default 10
 
@@ -180,7 +180,7 @@ menu "Board PINOUT configuration"
     # Audio codec
     # -------------------------------------------------------------------------
     config BOARD_CODEC_MCLK_PIN
-    int "CODEC_MCLK GPIO"
+        int "CODEC_MCLK GPIO"
         range 0 48
         default 16
 
@@ -192,11 +192,11 @@ menu "Board PINOUT configuration"
     config BOARD_CODEC_LRCK_PIN
         int "CODEC_LRCK GPIO"
         range 0 48
-        default 7
+        default 38
     
     config BOARD_CODEC_DIN_PIN
         int "CODEC_DIN GPIO"
         range 0 48
-        default 38
+        default 8
 
 endmenu

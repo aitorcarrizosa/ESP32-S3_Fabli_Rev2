@@ -6,9 +6,12 @@
 #include "board.h"
 #include "gpio_ctrl.h"
 #include "i2c_bus.h"
-#include "usb_ctrl.h"
 #include "power_ctrl.h"
+#include "usb_ctrl.h"
 #include "led_ctrl.h"
+#include "audio_ctrl.h"
+#include "encoder_ctrl.h"
+#include "input_ctrl.h"
 
 void console_start(void);
 
@@ -27,10 +30,13 @@ void app_main(void)
 
     board_init();
     ESP_ERROR_CHECK(gpio_ctrl_init());
-    ESP_ERROR_CHECK(power_ctrl_init());
     ESP_ERROR_CHECK(i2c_bus_init());
+    ESP_ERROR_CHECK(power_ctrl_init());
     ESP_ERROR_CHECK(usb_ctrl_init());
     ESP_ERROR_CHECK(led_ctrl_init());
+    ESP_ERROR_CHECK(audio_ctrl_init());
+    ESP_ERROR_CHECK(encoder_ctrl_init());
+    ESP_ERROR_CHECK(input_ctrl_init());
 
     xTaskCreate(console_task, "console_task", 4096, NULL, 5, NULL);
 

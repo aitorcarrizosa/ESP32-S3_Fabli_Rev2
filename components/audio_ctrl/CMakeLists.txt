@@ -7,6 +7,4 @@ idf_component_register(
         gpio_ctrl
         i2c_bus
         unity
-        driver
-        unity
 )
