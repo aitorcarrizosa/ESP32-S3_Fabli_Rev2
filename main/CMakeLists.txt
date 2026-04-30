@@ -12,4 +12,5 @@ idf_component_register(
         i2c_bus
         usb_ctrl
         led_ctrl
+        audio_ctrl
 )

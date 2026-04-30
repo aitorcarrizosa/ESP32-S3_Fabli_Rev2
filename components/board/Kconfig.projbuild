@@ -176,4 +176,27 @@ menu "Board PINOUT configuration"
         range 0 48
         default 45
 
+    # -------------------------------------------------------------------------
+    # Audio codec
+    # -------------------------------------------------------------------------
+    config BOARD_CODEC_MCLK_PIN
+    int "CODEC_MCLK GPIO"
+        range 0 48
+        default 16
+
+    config BOARD_CODEC_BCLK_PIN
+        int "CODEC_BCLK GPIO"
+        range 0 48
+        default 5
+
+    config BOARD_CODEC_LRCK_PIN
+        int "CODEC_LRCK GPIO"
+        range 0 48
+        default 7
+    
+    config BOARD_CODEC_DIN_PIN
+        int "CODEC_DIN GPIO"
+        range 0 48
+        default 38
+
 endmenu
