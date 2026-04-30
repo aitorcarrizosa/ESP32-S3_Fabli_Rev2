@@ -13,4 +13,5 @@ idf_component_register(
         usb_ctrl
         led_ctrl
         audio_ctrl
+        encoder_ctrl
 )

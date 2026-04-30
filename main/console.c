@@ -20,6 +20,7 @@
 #include "usb_ctrl.h"
 #include "led_ctrl.h"
 #include "audio_ctrl.h"
+#include "encoder_ctrl.h"
 
 /* Command handlers */
 static int cmd_reset(int argc, char **argv);
@@ -30,6 +31,7 @@ static int cmd_i2c(int argc, char **argv);
 static int cmd_usb(int argc, char **argv);
 static int cmd_led(int argc, char **argv);
 static int cmd_audio(int argc, char **argv);
+static int cmd_encoder(int argc, char **argv);
 
 /* Internal helpers */
 static void register_commands(void);
@@ -104,6 +106,14 @@ static void register_commands(void)
         .argtable = NULL,
     };
 
+    const esp_console_cmd_t cmd_encoder_def = {
+        .command = "encoder",
+        .help = "Rotary encoder control and test",
+        .hint = NULL,
+        .func = &cmd_encoder,
+        .argtable = NULL,
+    };
+
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_reset_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_gpio_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_power_def));
@@ -112,6 +122,7 @@ static void register_commands(void)
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_usb_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_led_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_audio_def));
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_encoder_def));
 }
 
 /* ------------------------- Reset command ------------------------ */
@@ -650,5 +661,36 @@ static int cmd_audio(int argc, char **argv)
     }
 
     printf("Unknown audio subcommand\r\n");
+    return 0;
+}
+
+/* ------------------------- Encoder command ------------------------- */
+static int cmd_encoder(int argc, char **argv)
+{
+    if (argc < 2) {
+        printf("Usage:\r\n");
+        printf("  encoder status\r\n");
+        printf("  encoder reset\r\n");
+        printf("  encoder test\r\n");
+        return 0;
+    }
+
+    if (argc == 2 && !strcmp(argv[1], "status")) {
+        encoder_ctrl_print_status();
+        return 0;
+    }
+
+    if (argc == 2 && !strcmp(argv[1], "reset")) {
+        encoder_ctrl_reset();
+        printf("Encoder position reset\r\n");
+        return 0;
+    }
+
+    if (argc == 2 && !strcmp(argv[1], "test")) {
+        encoder_ctrl_run_test();
+        return 0;
+    }
+
+    printf("Unknown encoder subcommand\r\n");
     return 0;
 }
