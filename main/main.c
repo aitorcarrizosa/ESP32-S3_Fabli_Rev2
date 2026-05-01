@@ -12,6 +12,7 @@
 #include "audio_ctrl.h"
 #include "encoder_ctrl.h"
 #include "input_ctrl.h"
+#include "acc_ctrl.h"
 
 void console_start(void);
 
@@ -37,6 +38,7 @@ void app_main(void)
     ESP_ERROR_CHECK(audio_ctrl_init());
     ESP_ERROR_CHECK(encoder_ctrl_init());
     ESP_ERROR_CHECK(input_ctrl_init());
+    ESP_ERROR_CHECK(acc_ctrl_init());
 
     xTaskCreate(console_task, "console_task", 4096, NULL, 5, NULL);
 

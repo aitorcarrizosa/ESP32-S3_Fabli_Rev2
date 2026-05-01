@@ -21,6 +21,7 @@
 #include "led_ctrl.h"
 #include "audio_ctrl.h"
 #include "encoder_ctrl.h"
+#include "acc_ctrl.h"
 
 /* Command handlers */
 static int cmd_reset(int argc, char **argv);
@@ -32,6 +33,7 @@ static int cmd_usb(int argc, char **argv);
 static int cmd_led(int argc, char **argv);
 static int cmd_audio(int argc, char **argv);
 static int cmd_encoder(int argc, char **argv);
+static int cmd_acc(int argc, char **argv);
 
 /* Internal helpers */
 static void register_commands(void);
@@ -114,6 +116,14 @@ static void register_commands(void)
         .argtable = NULL,
     };
 
+    const esp_console_cmd_t cmd_acc_def = {
+        .command = "acc",
+        .help = "Accelerometer control and test",
+        .hint = NULL,
+        .func = &cmd_acc,
+        .argtable = NULL,
+    };
+
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_reset_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_gpio_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_power_def));
@@ -123,6 +133,7 @@ static void register_commands(void)
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_led_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_audio_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_encoder_def));
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_acc_def));
 }
 
 /* ------------------------- Reset command ------------------------ */
@@ -692,5 +703,40 @@ static int cmd_encoder(int argc, char **argv)
     }
 
     printf("Unknown encoder subcommand\r\n");
+    return 0;
+}
+
+/* ------------------------- Accelerometer command ------------------------- */
+static int cmd_acc(int argc, char **argv)
+{
+    if (argc < 2) {
+        printf("Usage:\r\n");
+        printf("  acc read\r\n");
+        printf("  acc test\r\n");
+        return 0;
+    }
+
+    if (argc == 2 && !strcmp(argv[1], "read")) {
+        acc_ctrl_data_t data = {0};
+
+        esp_err_t err = acc_ctrl_read(&data);
+        if (err == ESP_OK) {
+            printf("Accelerometer:\r\n");
+            printf("  X = %d mg\r\n", data.x);
+            printf("  Y = %d mg\r\n", data.y);
+            printf("  Z = %d mg\r\n", data.z);
+        } else {
+            printf("Failed to read accelerometer: %s\r\n", esp_err_to_name(err));
+        }
+
+        return 0;
+    }
+
+    if (argc == 2 && !strcmp(argv[1], "test")) {
+        acc_ctrl_run_test();
+        return 0;
+    }
+
+    printf("Unknown accelerometer subcommand\r\n");
     return 0;
 }

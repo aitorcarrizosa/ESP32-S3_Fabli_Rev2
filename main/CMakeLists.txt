@@ -15,4 +15,5 @@ idf_component_register(
         audio_ctrl
         encoder_ctrl
         input_ctrl
+        acc_ctrl
 )
