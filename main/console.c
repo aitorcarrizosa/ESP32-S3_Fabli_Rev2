@@ -13,6 +13,7 @@
 
 #include "driver/uart.h"
 
+#include "board.h"
 #include "gpio_ctrl.h"
 #include "power_ctrl.h"
 #include "sdcard_ctrl.h"
@@ -245,7 +246,7 @@ static int uart_readline_echo(uart_port_t uart, char *out, int out_sz)
 
 void console_start(void)
 {
-#if CONFIG_FABLI_CONSOLE_UART
+#if CONFIG_ESP_CONSOLE_UART_DEFAULT || CONFIG_ESP_CONSOLE_UART_CUSTOM
     const uart_port_t console_uart = (uart_port_t)CONFIG_ESP_CONSOLE_UART_NUM;
 
     const uart_config_t uart_cfg = {
@@ -303,14 +304,14 @@ void console_start(void)
         printf("ESP32-S3_Fabli_Rev2> ");
         fflush(stdout);
     }
-#elif CONFIG_FABLI_CONSOLE_USB
+#elif CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG
     esp_err_t err;
 
     esp_console_repl_config_t repl_cfg = ESP_CONSOLE_REPL_CONFIG_DEFAULT();
     repl_cfg.prompt = "ESP32-S3_Fabli_Rev2> ";
     repl_cfg.max_cmdline_length = 256;
 
-    esp_console_dev_usb_serial_jtag_config_t usb_cfg = { 0 };
+    esp_console_dev_usb_serial_jtag_config_t usb_cfg = ESP_CONSOLE_DEV_USB_SERIAL_JTAG_CONFIG_DEFAULT();
     esp_console_repl_t *repl = NULL;
 
     err = esp_console_new_repl_usb_serial_jtag(&usb_cfg, &repl_cfg, &repl);

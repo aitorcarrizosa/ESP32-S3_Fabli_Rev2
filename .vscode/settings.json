@@ -5,9 +5,9 @@
     "board/esp32s3-builtin.cfg"
   ],
     "idf.portWin": "COM25",
-    "idf.flashType": "JTAG",
+    "idf.flashType": "UART",
     "idf.customExtraVars": {
-    "IDF_TARGET": "esp32s3"
-  },
+      "IDF_TARGET": "esp32s3"
+    },
   "C_Cpp.dimInactiveRegions": false,
 }
