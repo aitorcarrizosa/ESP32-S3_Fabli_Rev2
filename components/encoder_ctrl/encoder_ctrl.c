@@ -190,11 +190,11 @@ void encoder_ctrl_print_status(void)
 
     printf("\r\n");
     printf("Encoder status:\r\n");
-    printf("  ENCODER_A      = %d\r\n", gpio_get_level(PIN_ENCODER_A));
-    printf("  ENCODER_B      = %d\r\n", gpio_get_level(PIN_ENCODER_B));
-    printf("  ENCODER_SW_N   = %d\r\n", gpio_get_level(PIN_ENCODER_SW_N));
-    printf("  Position       = %ld\r\n", (long)position);
-    printf("  Revolutions    = %ld\r\n", (long)revolutions);
+    printf("  ENCODER_A      = %d\n", gpio_get_level(PIN_ENCODER_A));
+    printf("  ENCODER_B      = %d\n", gpio_get_level(PIN_ENCODER_B));
+    printf("  ENCODER_SW_N   = %d\n", gpio_get_level(PIN_ENCODER_SW_N));
+    printf("  Position       = %ld\n", (long)position);
+    printf("  Revolutions    = %ld\n", (long)revolutions);
     printf("\r\n");
 }
 

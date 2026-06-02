@@ -237,11 +237,11 @@ void audio_ctrl_print_status(void)
 
     printf("\r\n");
     printf("Audio status:\r\n");
-    printf("  CODEC_I2C      = %s\r\n", codec_present ? "OK" : "NOT DETECTED");
-    printf("  INIT_DONE      = %d\r\n", codec.is_initialized ? 1 : 0);
-    printf("  I2S_PORT       = %d\r\n", codec.config.i2s_port);
-    printf("  SAMPLE_RATE    = %lu\r\n", codec.config.sample_rate);
-    printf("  BIT_DEPTH      = %u\r\n", codec.config.bit_depth);
+    printf("  CODEC_I2C      = %s\n", codec_present ? "OK" : "NOT DETECTED");
+    printf("  INIT_DONE      = %d\n", codec.is_initialized ? 1 : 0);
+    printf("  I2S_PORT       = %d\n", codec.config.i2s_port);
+    printf("  SAMPLE_RATE    = %lu\n", codec.config.sample_rate);
+    printf("  BIT_DEPTH      = %u\n", codec.config.bit_depth);
     printf("  VOLUME         = %u%%\r\n", codec.volume);
     printf("\r\n");
 }

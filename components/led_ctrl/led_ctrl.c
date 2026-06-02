@@ -370,12 +370,12 @@ void led_ctrl_print_status(void)
 
     printf("\r\n");
     printf("LED status:\r\n");
-    printf("  LED_EN        = %d\r\n", gpio_ctrl_get_led_enable() ? 1 : 0);
-    printf("  LED_nRESET    = %d\r\n", gpio_ctrl_get_led_reset() ? 1 : 0);
-    printf("  LED_nFAULT_1  = %d\r\n", gpio_ctrl_get_led_fault1_n() ? 1 : 0);
-    printf("  LED_nFAULT_2  = %d\r\n", gpio_ctrl_get_led_fault2_n() ? 1 : 0);
-    printf("  INIT_DONE     = %d\r\n", initialized ? 1 : 0);
-    printf("  DEV1_PRESENT  = %d\r\n", dev1_present ? 1 : 0);
+    printf("  LED_EN        = %d\n", gpio_ctrl_get_led_enable() ? 1 : 0);
+    printf("  LED_nRESET    = %d\n", gpio_ctrl_get_led_reset() ? 1 : 0);
+    printf("  LED_nFAULT_1  = %d\n", gpio_ctrl_get_led_fault1_n() ? 1 : 0);
+    printf("  LED_nFAULT_2  = %d\n", gpio_ctrl_get_led_fault2_n() ? 1 : 0);
+    printf("  INIT_DONE     = %d\n", initialized ? 1 : 0);
+    printf("  DEV1_PRESENT  = %d\n", dev1_present ? 1 : 0);
     printf("  DEV2_PRESENT  = %d\r\n", dev2_present ? 1 : 0);
 
     if (dev1_present) {

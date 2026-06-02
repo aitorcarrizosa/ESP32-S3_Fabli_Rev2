@@ -68,12 +68,12 @@ esp_err_t power_ctrl_init(void)
 /* -------------------------------------------------------------------------- */
 esp_err_t power_ctrl_set_on(void)
 {
-    return gpio_ctrl_set_pwr_on(true);
+    return gpio_ctrl_set_pwr_on(false);   // LOW = power enabled
 }
 
 esp_err_t power_ctrl_set_off(void)
 {
-    return gpio_ctrl_set_pwr_on(false);
+    return gpio_ctrl_set_pwr_on(true);    // HIGH = power disabled
 }
 
 /* -------------------------------------------------------------------------- */
@@ -104,18 +104,17 @@ void power_ctrl_print_status(void)
 
     printf("\r\n");
     printf("Power status:\r\n");
-    printf("  PWR_ON  = %d\r\n", gpio_ctrl_get_pwr_on() ? 1 : 0);
-    printf("  AC_nOK  = %d  (%s)\r\n",
-           gpio_ctrl_get_ac_nok() ? 1 : 0,
+    printf("  PWR_ON  = %d (%s)\n", gpio_ctrl_get_pwr_on() ? 1 : 0,
+           gpio_ctrl_get_pwr_on() ? "PWR_ON disabled" : "PWR_ON enabled");
+    printf("  AC_nOK  = %d  (%s)\n", gpio_ctrl_get_ac_nok() ? 1 : 0,
            gpio_ctrl_get_ac_nok() ? "no valid input" : "valid input present");
-    printf("  CHG_OK  = %d  (%s)\r\n",
-           gpio_ctrl_get_chg_ok() ? 1 : 0,
+    printf("  CHG_OK  = %d  (%s)\n", gpio_ctrl_get_chg_ok() ? 1 : 0,
            gpio_ctrl_get_chg_ok() ? "charge complete / charger idle" : "charging");
 
     if (vbat >= 0.0f) {
-        printf("  VBAT    = %.2f V\r\n", vbat);
+        printf("  VBAT    = %.2f V\n", vbat);
     } else {
-        printf("  VBAT    = read error\r\n");
+        printf("  VBAT    = read error\n");
     }
 
     if (rev >= 0.0f) {
@@ -123,6 +122,4 @@ void power_ctrl_print_status(void)
     } else {
         printf("  REV     = read error\r\n");
     }
-
-    printf("\r\n");
 }

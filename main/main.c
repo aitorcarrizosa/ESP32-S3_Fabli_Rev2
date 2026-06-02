@@ -30,11 +30,11 @@ void app_main(void)
     ESP_LOGI(TAG, "Application start");
 
     board_init();
-    // ESP_ERROR_CHECK(gpio_ctrl_init());
-    // ESP_ERROR_CHECK(i2c_bus_init());
-    // ESP_ERROR_CHECK(power_ctrl_init());
-    // ESP_ERROR_CHECK(usb_ctrl_init());
-    // ESP_ERROR_CHECK(led_ctrl_init());
+    ESP_ERROR_CHECK(gpio_ctrl_init());
+    ESP_ERROR_CHECK(i2c_bus_init());
+    ESP_ERROR_CHECK(power_ctrl_init());
+    ESP_ERROR_CHECK(usb_ctrl_init());
+    ESP_ERROR_CHECK(led_ctrl_init());
     // ESP_ERROR_CHECK(audio_ctrl_init());
     // ESP_ERROR_CHECK(encoder_ctrl_init());
     // ESP_ERROR_CHECK(input_ctrl_init());

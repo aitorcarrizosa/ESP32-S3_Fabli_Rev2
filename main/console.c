@@ -55,7 +55,7 @@ static void register_commands(void)
 
     const esp_console_cmd_t cmd_gpio_def = {
         .command = "gpio",
-        .help = "GPIO utilities",
+        .help = "Show GPIO input and output status",
         .hint = NULL,
         .func = &cmd_gpio,
         .argtable = NULL,
@@ -71,7 +71,7 @@ static void register_commands(void)
 
     const esp_console_cmd_t cmd_sd_def = {
         .command = "sd",
-        .help = "SD card control",
+        .help = "Mount, unmount and show SD card information",
         .hint = NULL,
         .func = &cmd_sd,
         .argtable = NULL,
@@ -135,74 +135,6 @@ static void register_commands(void)
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_audio_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_encoder_def));
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd_acc_def));
-}
-
-/* ------------------------- Reset command ------------------------ */
-static int cmd_reset(int argc, char **argv)
-{
-    (void)argc;
-    (void)argv;
-
-    printf("System resetting...\r\n");
-    fflush(stdout);
-    vTaskDelay(pdMS_TO_TICKS(50));
-    esp_restart();
-    return 0;
-}
-
-/* ------------------------- GPIO command ------------------------- */
-static int cmd_gpio(int argc, char **argv)
-{
-    if (argc < 2) {
-        printf("Usage:\r\n");
-        printf("  gpio status\r\n");
-        return 0;
-    }
-    
-    gpio_ctrl_print_status();
-    return 0;
-}
-
-/* ------------------------- Power command ------------------------- */
-static int cmd_power(int argc, char **argv)
-{
-    esp_err_t err;
-
-    if (argc < 2) {
-        printf("Usage:\r\n");
-        printf("  power status\r\n");
-        printf("  power on\r\n");
-        printf("  power off\r\n");
-        return 0;
-    }
-
-    if (!strcmp(argv[1], "status")) {
-        power_ctrl_print_status();
-        return 0;
-    }
-
-    if (!strcmp(argv[1], "on")) {
-        err = power_ctrl_set_on();
-        if (err == ESP_OK) {
-            printf("PWR_ON set to HIGH\r\n");
-        } else {
-            printf("Failed to set PWR_ON HIGH: %s\r\n", esp_err_to_name(err));
-        }
-        return 0;
-    }
-
-    if (!strcmp(argv[1], "off")) {
-        err = power_ctrl_set_off();
-        if (err == ESP_OK) {
-            printf("PWR_ON set to LOW\r\n");
-        } else {
-            printf("Failed to set PWR_ON LOW: %s\r\n", esp_err_to_name(err));
-        }
-        return 0;
-    }
-
-    printf("Unknown power subcommand\r\n");
-    return 0;
 }
 
 /* ---------------------- UART readline echo ---------------------- */
@@ -327,48 +259,153 @@ void console_start(void)
 #endif
 }
 
+/* ------------------------- Reset command ------------------------ */
+static int cmd_reset(int argc, char **argv)
+{
+    (void)argc;
+    (void)argv;
+
+    printf("System resetting...\r\n");
+    fflush(stdout);
+    vTaskDelay(pdMS_TO_TICKS(50));
+    esp_restart();
+    return 0;
+}
+
+/* ------------------------- GPIO command ------------------------- */
+static int cmd_gpio(int argc, char **argv)
+{
+    if (argc == 2 && strcmp(argv[1], "?") == 0)
+    {
+        printf("\r\n");
+        printf("GPIO command\r\n");
+        printf(" Usage:\r\n");
+        printf("   gpio status\r\n");
+        return 0;
+    }
+
+    if (argc == 2 && strcmp(argv[1], "status") == 0)
+    {
+        gpio_ctrl_print_status();
+        return 0;
+    }
+
+    printf("\r\n");
+    printf("Unknown command. Type 'gpio ?' for help.\r\n");
+    return 0;
+}
+
+/* ------------------------- Power command ------------------------- */
+static int cmd_power(int argc, char **argv)
+{
+    esp_err_t err;
+
+    if (argc == 2 && strcmp(argv[1], "?") == 0)
+    {
+        printf("\r\n");
+        printf("Power command\r\n");
+        printf(" Usage:\r\n");
+        printf("   power status\n");
+        printf("   power on\n");
+        printf("   power off\r\n");
+        return 0;
+    }
+
+    if (argc == 2 && strcmp(argv[1], "status") == 0)
+    {
+        power_ctrl_print_status();
+        return 0;
+    }
+
+    if (argc == 2 && strcmp(argv[1], "on") == 0)
+    {
+        err = power_ctrl_set_on();
+        if (err == ESP_OK)
+        {
+            printf("Power enabled, PWR_ON set to LOW\r\n");
+        }
+        else
+        {
+            printf("Failed to enable power: %s\r\n", esp_err_to_name(err));
+        }
+        return 0;
+    }
+
+    if (argc == 2 && strcmp(argv[1], "off") == 0)
+    {
+        err = power_ctrl_set_off();
+        if (err == ESP_OK)
+        {
+            printf("Power disabled, PWR_ON set to HIGH\r\n");
+        }
+        else
+        {
+            printf("Failed to disable power: %s\r\n", esp_err_to_name(err));
+        }
+        return 0;
+    }
+
+    printf("\r\n");
+    printf("Unknown command. Type 'power ?' for help.\r\n");
+    return 0;
+}
+
 /* ------------------------- SD card ------------------------- */
 static int cmd_sd(int argc, char **argv)
 {
     esp_err_t err;
 
-    if (argc < 2) {
-        printf("Usage:\r\n");
-        printf("  sd mount\r\n");
-        printf("  sd unmount\r\n");
-        printf("  sd info\r\n");
+    if (argc == 2 && strcmp(argv[1], "?") == 0)
+    {
+        printf("\r\n");
+        printf("SD card command\r\n");
+        printf(" Usage:\r\n");
+        printf("   sd mount\n");
+        printf("   sd unmount\n");
+        printf("   sd info\r\n");
         return 0;
     }
 
-    if (!strcmp(argv[1], "mount")) {
+    if (argc == 2 && strcmp(argv[1], "mount") == 0)
+    {
         err = sdcard_ctrl_mount();
-        if (err == ESP_OK) {
+        if (err == ESP_OK)
+        {
             printf("SD card mounted\r\n");
-        } else {
+        }
+        else
+        {
             printf("SD mount failed: %s\r\n", esp_err_to_name(err));
         }
         return 0;
     }
 
-    if (!strcmp(argv[1], "unmount")) {
+    if (argc == 2 && strcmp(argv[1], "unmount") == 0)
+    {
         err = sdcard_ctrl_unmount();
-        if (err == ESP_OK) {
+        if (err == ESP_OK)
+        {
             printf("SD card unmounted\r\n");
-        } else {
+        }
+        else
+        {
             printf("SD unmount failed: %s\r\n", esp_err_to_name(err));
         }
         return 0;
     }
 
-    if (!strcmp(argv[1], "info")) {
+    if (argc == 2 && strcmp(argv[1], "info") == 0)
+    {
         err = sdcard_ctrl_print_info();
-        if (err != ESP_OK) {
+        if (err != ESP_OK)
+        {
             printf("SD info failed: %s\r\n", esp_err_to_name(err));
         }
         return 0;
     }
 
-    printf("Unknown sd subcommand\r\n");
+    printf("\r\n");
+    printf("Unknown command. Type 'sd ?' for help.\r\n");
     return 0;
 }
 
@@ -377,367 +414,440 @@ static int cmd_i2c(int argc, char **argv)
 {
     esp_err_t err;
 
-    if (argc < 2) {
-        printf("Usage:\r\n");
-        printf("  i2c scan <0|1>\r\n");
-        printf("  i2c probe <0|1> <addr>\r\n");
-        printf("Examples:\r\n");
-        printf("  i2c scan 0\r\n");
-        printf("  i2c probe 1 0x20\r\n");
+    if (argc == 2 && strcmp(argv[1], "?") == 0)
+    {
+        printf("\r\n");
+        printf("I2C command\r\n");
+        printf(" Usage:\r\n");
+        printf("   i2c scan <0|1>\n");
+        printf("   i2c probe <0|1> <addr>\r\n");
+        printf(" Examples:\r\n");
+        printf("   i2c scan 0\n");
+        printf("   i2c probe 1 0x20\r\n");
         return 0;
     }
 
-    if (!strcmp(argv[1], "scan")) {
-        if (argc < 3) {
-            printf("Usage: i2c scan <0|1>\r\n");
-            return 0;
-        }
-
+    if (argc == 3 && strcmp(argv[1], "scan") == 0)
+    {
         int bus_num = atoi(argv[2]);
-        if (bus_num != 0 && bus_num != 1) {
+
+        if (bus_num != 0 && bus_num != 1)
+        {
+            printf("\r\n");
             printf("Invalid bus. Use 0 or 1\r\n");
             return 0;
         }
 
         err = i2c_bus_scan((bus_num == 0) ? I2C_BUS_0 : I2C_BUS_1);
-        if (err != ESP_OK) {
+        if (err != ESP_OK)
+        {
             printf("I2C scan failed: %s\r\n", esp_err_to_name(err));
         }
         return 0;
     }
 
-    if (!strcmp(argv[1], "probe")) {
-        if (argc < 4) {
-            printf("Usage: i2c probe <0|1> <addr>\r\n");
-            printf("Example: i2c probe 0 0x18\r\n");
-            return 0;
-        }
-
+    if (argc == 4 && strcmp(argv[1], "probe") == 0)
+    {
         int bus_num = atoi(argv[2]);
-        if (bus_num != 0 && bus_num != 1) {
+
+        if (bus_num != 0 && bus_num != 1)
+        {
+            printf("\r\n");
             printf("Invalid bus. Use 0 or 1\r\n");
             return 0;
         }
 
         char *endptr = NULL;
         long addr = strtol(argv[3], &endptr, 0);
-        if ((endptr == argv[3]) || (addr < 0x08) || (addr > 0x77)) {
+
+        if ((endptr == argv[3]) || (*endptr != '\0') || (addr < 0x08) || (addr > 0x77))
+        {
+            printf("\r\n");
             printf("Invalid I2C address. Use 0x08..0x77\r\n");
             return 0;
         }
 
         err = i2c_bus_probe((bus_num == 0) ? I2C_BUS_0 : I2C_BUS_1, (uint8_t)addr);
-        if (err == ESP_OK) {
+        if (err == ESP_OK)
+        {
             printf("Device found on bus %d at address 0x%02lX\r\n", bus_num, addr);
-        } else {
+        }
+        else
+        {
             printf("No response on bus %d at address 0x%02lX (%s)\r\n",
                    bus_num, addr, esp_err_to_name(err));
         }
         return 0;
     }
 
-    printf("Unknown i2c subcommand\r\n");
+    printf("\r\n");
+    printf("Unknown command. Type 'i2c ?' for help.\r\n");
     return 0;
 }
 
 /* ------------------------- USB command ------------------------- */
 static int cmd_usb(int argc, char **argv)
 {
-    if (argc < 2) {
-        printf("Usage:\r\n");
-        printf("  usb status\r\n");
-        printf("  usb mode usb\r\n");
-        printf("  usb mode audio\r\n");
+    if (argc == 2 && strcmp(argv[1], "?") == 0)
+    {
+        printf("\r\n");
+        printf("USB command\r\n");
+        printf(" Usage:\r\n");
+        printf("   usb status\n");
+        printf("   usb mode usb\n");
+        printf("   usb mode audio\r\n");
         return 0;
     }
 
-    if (argc == 2 && !strcmp(argv[1], "status")) {
+    if (argc == 2 && strcmp(argv[1], "status") == 0)
+    {
         usb_ctrl_print_status();
         return 0;
     }
 
-    if (argc == 3 && !strcmp(argv[1], "mode")) {
-        esp_err_t err;
+    if (argc == 3 && strcmp(argv[1], "mode") == 0 && strcmp(argv[2], "usb") == 0)
+    {
+        esp_err_t err = usb_ctrl_set_mode_usb();
 
-        if (!strcmp(argv[2], "usb")) {
-            err = usb_ctrl_set_mode_usb();
-            if (err == ESP_OK) {
-                printf("USB connector set to USB mode\r\n");
-            } else {
-                printf("Failed to set USB mode: %s\r\n", esp_err_to_name(err));
-            }
-            return 0;
+        if (err == ESP_OK)
+        {
+            printf("USB connector set to USB mode\r\n");
         }
-
-        if (!strcmp(argv[2], "audio")) {
-            err = usb_ctrl_set_mode_audio();
-            if (err == ESP_OK) {
-                printf("USB connector set to audio mode\r\n");
-            } else {
-                printf("Failed to set audio mode: %s\r\n", esp_err_to_name(err));
-            }
-            return 0;
+        else
+        {
+            printf("Failed to set USB mode: %s\r\n", esp_err_to_name(err));
         }
+        return 0;
     }
 
-    printf("Unknown usb subcommand\r\n");
+    if (argc == 3 && strcmp(argv[1], "mode") == 0 && strcmp(argv[2], "audio") == 0)
+    {
+        esp_err_t err = usb_ctrl_set_mode_audio();
+
+        if (err == ESP_OK)
+        {
+            printf("USB connector set to audio mode\r\n");
+        }
+        else
+        {
+            printf("Failed to set audio mode: %s\r\n", esp_err_to_name(err));
+        }
+        return 0;
+    }
+
+    printf("\r\n");
+    printf("Unknown command. Type 'usb ?' for help.\r\n");
     return 0;
 }
 
 /* ------------------------- LED command ------------------------- */
 static int cmd_led(int argc, char **argv)
 {
-    if (argc < 2) {
-        printf("Usage:\r\n");
-        printf("  led status\r\n");
-        printf("  led en on\r\n");
-        printf("  led en off\r\n");
-        printf("  led reset assert\r\n");
-        printf("  led reset release\r\n");
-        printf("  led color <index> <r> <g> <b>\r\n");
-        printf("  led brightness <dev> <value>\r\n");
-        printf("  led test\r\n");
+    if (argc == 2 && strcmp(argv[1], "?") == 0)
+    {
+        printf("\r\n");
+        printf("LED command\r\n");
+        printf(" Usage:\r\n");
+        printf("   led status\n");
+        printf("   led en on/off\n");
+        printf("   led reset on/off\n");
+        printf("   led color <index> <r> <g> <b>\n");
+        printf("   led brightness <dev> <value>\n");
+        printf("   led test\r\n");
         return 0;
     }
 
-    if (argc == 2 && !strcmp(argv[1], "status")) {
+    if (argc == 2 && strcmp(argv[1], "status") == 0)
+    {
         led_ctrl_print_status();
         return 0;
     }
 
-    if (argc == 2 && !strcmp(argv[1], "test")) {
+    if (argc == 2 && strcmp(argv[1], "test") == 0)
+    {
         led_ctrl_run_test();
         return 0;
     }
 
-    if (argc == 3 && !strcmp(argv[1], "en")) {
-        esp_err_t err;
+    if (argc == 3 && strcmp(argv[1], "en") == 0 && strcmp(argv[2], "on") == 0)
+    {
+        esp_err_t err = led_ctrl_set_enable(true);
 
-        if (!strcmp(argv[2], "on")) {
-            err = led_ctrl_set_enable(true);
-            if (err == ESP_OK) {
-                printf("LED_EN set to HIGH\r\n");
-            } else {
-                printf("Failed to set LED_EN HIGH: %s\r\n", esp_err_to_name(err));
-            }
-            return 0;
+        if (err == ESP_OK)
+        {
+            printf("LED_EN set to HIGH\r\n");
         }
-
-        if (!strcmp(argv[2], "off")) {
-            err = led_ctrl_set_enable(false);
-            if (err == ESP_OK) {
-                printf("LED_EN set to LOW\r\n");
-            } else {
-                printf("Failed to set LED_EN LOW: %s\r\n", esp_err_to_name(err));
-            }
-            return 0;
+        else
+        {
+            printf("Failed to set LED_EN HIGH: %s\r\n", esp_err_to_name(err));
         }
+        return 0;
     }
 
-    if (argc == 3 && !strcmp(argv[1], "reset")) {
-        esp_err_t err;
+    if (argc == 3 && strcmp(argv[1], "en") == 0 && strcmp(argv[2], "off") == 0)
+    {
+        esp_err_t err = led_ctrl_set_enable(false);
 
-        if (!strcmp(argv[2], "assert")) {
-            err = led_ctrl_set_reset(false);
-            if (err == ESP_OK) {
-                printf("LED_nRESET asserted\r\n");
-            } else {
-                printf("Failed to assert LED_nRESET: %s\r\n", esp_err_to_name(err));
-            }
-            return 0;
+        if (err == ESP_OK)
+        {
+            printf("LED_EN set to LOW\r\n");
         }
-
-        if (!strcmp(argv[2], "release")) {
-            err = led_ctrl_set_reset(true);
-            if (err == ESP_OK) {
-                printf("LED_nRESET released\r\n");
-            } else {
-                printf("Failed to release LED_nRESET: %s\r\n", esp_err_to_name(err));
-            }
-            return 0;
+        else
+        {
+            printf("Failed to set LED_EN LOW: %s\r\n", esp_err_to_name(err));
         }
+        return 0;
     }
 
-    if (argc == 6 && !strcmp(argv[1], "color")) {
+    if (argc == 3 && strcmp(argv[1], "reset") == 0 && strcmp(argv[2], "on") == 0)
+    {
+        esp_err_t err = led_ctrl_set_reset(false);
+
+        if (err == ESP_OK)
+        {
+            printf("LED reset enabled, LED_nRESET set to LOW\r\n");
+        }
+        else
+        {
+            printf("Failed to enable LED reset: %s\r\n", esp_err_to_name(err));
+        }
+        return 0;
+    }
+
+    if (argc == 3 && strcmp(argv[1], "reset") == 0 && strcmp(argv[2], "off") == 0)
+    {
+        esp_err_t err = led_ctrl_set_reset(true);
+
+        if (err == ESP_OK)
+        {
+            printf("LED reset disabled, LED_nRESET set to HIGH\r\n");
+        }
+        else
+        {
+            printf("Failed to disable LED reset: %s\r\n", esp_err_to_name(err));
+        }
+        return 0;
+    }
+
+    if (argc == 6 && strcmp(argv[1], "color") == 0)
+    {
         char *endptr = NULL;
 
         long index = strtol(argv[2], &endptr, 0);
-        if (*endptr != '\0' || index < 0 || index > 255) {
+        if ((endptr == argv[2]) || (*endptr != '\0') || index < 0 || index > 255)
+        {
             printf("Invalid LED index\r\n");
             return 0;
         }
 
         long red = strtol(argv[3], &endptr, 0);
-        if (*endptr != '\0' || red < 0 || red > 255) {
+        if ((endptr == argv[3]) || (*endptr != '\0') || red < 0 || red > 255)
+        {
             printf("Invalid red value\r\n");
             return 0;
         }
 
         long green = strtol(argv[4], &endptr, 0);
-        if (*endptr != '\0' || green < 0 || green > 255) {
+        if ((endptr == argv[4]) || (*endptr != '\0') || green < 0 || green > 255)
+        {
             printf("Invalid green value\r\n");
             return 0;
         }
 
         long blue = strtol(argv[5], &endptr, 0);
-        if (*endptr != '\0' || blue < 0 || blue > 255) {
+        if ((endptr == argv[5]) || (*endptr != '\0') || blue < 0 || blue > 255)
+        {
             printf("Invalid blue value\r\n");
             return 0;
         }
 
-        esp_err_t err = led_ctrl_set_color((uint8_t)index,
-                                           (uint8_t)red,
-                                           (uint8_t)green,
-                                           (uint8_t)blue);
-        if (err == ESP_OK) {
-            printf("LED %ld color set to R=%ld G=%ld B=%ld\r\n",
-                   index, red, green, blue);
-        } else {
+        esp_err_t err = led_ctrl_set_color((uint8_t)index, (uint8_t)red, (uint8_t)green, (uint8_t)blue);
+
+        if (err == ESP_OK)
+        {
+            printf("LED %ld color set to R=%ld G=%ld B=%ld\r\n", index, red, green, blue);
+        }
+        else
+        {
             printf("Failed to set LED color: %s\r\n", esp_err_to_name(err));
         }
         return 0;
     }
 
-    if (argc == 4 && !strcmp(argv[1], "brightness")) {
+    if (argc == 4 && strcmp(argv[1], "brightness") == 0)
+    {
         char *endptr = NULL;
 
         long dev = strtol(argv[2], &endptr, 0);
-        if (*endptr != '\0' || dev < 1 || dev > 2) {
+        if ((endptr == argv[2]) || (*endptr != '\0') || dev < 1 || dev > 2)
+        {
             printf("Invalid device. Use 1 or 2\r\n");
             return 0;
         }
 
         long value = strtol(argv[3], &endptr, 0);
-        if (*endptr != '\0' || value < 0 || value > 63) {
+        if ((endptr == argv[3]) || (*endptr != '\0') || value < 0 || value > 63)
+        {
             printf("Invalid brightness value. Use 0..63\r\n");
             return 0;
         }
 
-        esp_err_t err = led_ctrl_set_brightness((dev == 1) ? LED_CTRL_DEVICE_1 : LED_CTRL_DEVICE_2,
-                                                (uint8_t)value);
-        if (err == ESP_OK) {
+        esp_err_t err = led_ctrl_set_brightness((dev == 1) ? LED_CTRL_DEVICE_1 : LED_CTRL_DEVICE_2, (uint8_t)value);
+
+        if (err == ESP_OK)
+        {
             printf("LED device %ld brightness set to %ld\r\n", dev, value);
-        } else {
+        }
+        else
+        {
             printf("Failed to set brightness: %s\r\n", esp_err_to_name(err));
         }
         return 0;
     }
 
-    printf("Unknown led subcommand\r\n");
+    printf("\r\n");
+    printf("Unknown command. Type 'led ?' for help.\r\n");
     return 0;
 }
 
 /* ------------------------- Audio command ------------------------- */
 static int cmd_audio(int argc, char **argv)
 {
-    if (argc < 2) {
-        printf("Usage:\r\n");
-        printf("  audio status\r\n");
-        printf("  audio volume <0-100>\r\n");
-        printf("  audio test\r\n");
+    if (argc == 2 && strcmp(argv[1], "?") == 0)
+    {
+        printf("\r\n");
+        printf("Audio command\r\n");
+        printf(" Usage:\r\n");
+        printf("   audio status\n");
+        printf("   audio volume <0-100>\n");
+        printf("   audio test\r\n");
         return 0;
     }
 
-    if (argc == 2 && !strcmp(argv[1], "status")) {
+    if (argc == 2 && strcmp(argv[1], "status") == 0)
+    {
         audio_ctrl_print_status();
         return 0;
     }
 
-    if (argc == 3 && !strcmp(argv[1], "volume")) {
+    if (argc == 3 && strcmp(argv[1], "volume") == 0)
+    {
         char *endptr = NULL;
 
         long volume = strtol(argv[2], &endptr, 0);
-        if (*endptr != '\0' || volume < 0 || volume > 100) {
+        if ((endptr == argv[2]) || (*endptr != '\0') || volume < 0 || volume > 100)
+        {
             printf("Invalid volume. Use 0..100\r\n");
             return 0;
         }
 
         esp_err_t err = audio_ctrl_init();
-        if (err != ESP_OK) {
+        if (err != ESP_OK)
+        {
             printf("Audio init failed: %s\r\n", esp_err_to_name(err));
             return 0;
         }
 
         err = audio_ctrl_set_volume((uint8_t)volume);
-        if (err == ESP_OK) {
+        if (err == ESP_OK)
+        {
             printf("Audio volume set to %ld%%\r\n", volume);
-        } else {
+        }
+        else
+        {
             printf("Failed to set audio volume: %s\r\n", esp_err_to_name(err));
         }
         return 0;
     }
 
-    if (argc == 2 && !strcmp(argv[1], "test")) {
+    if (argc == 2 && strcmp(argv[1], "test") == 0)
+    {
         audio_ctrl_run_test();
         return 0;
     }
 
-    printf("Unknown audio subcommand\r\n");
+    printf("\r\n");
+    printf("Unknown command. Type 'audio ?' for help.\r\n");
     return 0;
 }
 
 /* ------------------------- Encoder command ------------------------- */
 static int cmd_encoder(int argc, char **argv)
 {
-    if (argc < 2) {
-        printf("Usage:\r\n");
-        printf("  encoder status\r\n");
-        printf("  encoder reset\r\n");
-        printf("  encoder test\r\n");
+    if (argc == 2 && strcmp(argv[1], "?") == 0)
+    {
+        printf("\r\n");
+        printf("Encoder command\r\n");
+        printf(" Usage:\r\n");
+        printf("   encoder status\n");
+        printf("   encoder reset\n");
+        printf("   encoder test\r\n");
         return 0;
     }
 
-    if (argc == 2 && !strcmp(argv[1], "status")) {
+    if (argc == 2 && strcmp(argv[1], "status") == 0)
+    {
         encoder_ctrl_print_status();
         return 0;
     }
 
-    if (argc == 2 && !strcmp(argv[1], "reset")) {
+    if (argc == 2 && strcmp(argv[1], "reset") == 0)
+    {
         encoder_ctrl_reset();
         printf("Encoder position reset\r\n");
         return 0;
     }
 
-    if (argc == 2 && !strcmp(argv[1], "test")) {
+    if (argc == 2 && strcmp(argv[1], "test") == 0)
+    {
         encoder_ctrl_run_test();
         return 0;
     }
 
-    printf("Unknown encoder subcommand\r\n");
+    printf("\r\n");
+    printf("Unknown command. Type 'encoder ?' for help.\r\n");
     return 0;
 }
 
 /* ------------------------- Accelerometer command ------------------------- */
 static int cmd_acc(int argc, char **argv)
 {
-    if (argc < 2) {
-        printf("Usage:\r\n");
-        printf("  acc read\r\n");
-        printf("  acc test\r\n");
+    if (argc == 2 && strcmp(argv[1], "?") == 0)
+    {
+        printf("\r\n");
+        printf("Accelerometer command\r\n");
+        printf(" Usage:\r\n");
+        printf("   acc read\n");
+        printf("   acc test\r\n");
         return 0;
     }
 
-    if (argc == 2 && !strcmp(argv[1], "read")) {
+    if (argc == 2 && strcmp(argv[1], "read") == 0)
+    {
         acc_ctrl_data_t data = {0};
 
         esp_err_t err = acc_ctrl_read(&data);
-        if (err == ESP_OK) {
+        if (err == ESP_OK)
+        {
             printf("Accelerometer:\r\n");
-            printf("  X = %d mg\r\n", data.x);
-            printf("  Y = %d mg\r\n", data.y);
+            printf("  X = %d mg\n", data.x);
+            printf("  Y = %d mg\n", data.y);
             printf("  Z = %d mg\r\n", data.z);
-        } else {
+        }
+        else
+        {
             printf("Failed to read accelerometer: %s\r\n", esp_err_to_name(err));
         }
-
         return 0;
     }
 
-    if (argc == 2 && !strcmp(argv[1], "test")) {
+    if (argc == 2 && strcmp(argv[1], "test") == 0)
+    {
         acc_ctrl_run_test();
         return 0;
     }
 
-    printf("Unknown accelerometer subcommand\r\n");
+    printf("\r\n");
+    printf("Unknown command. Type 'acc ?' for help.\r\n");
     return 0;
 }

@@ -115,48 +115,54 @@ esp_err_t i2c_bus_probe(i2c_bus_id_t bus_id, uint8_t address)
 
 esp_err_t i2c_bus_scan(i2c_bus_id_t bus_id)
 {
-    if (!i2c_bus_is_initialized(bus_id)) {
+    if (!i2c_bus_is_initialized(bus_id))
+    {
         ESP_LOGW(TAG, "I2C bus %d is not initialized", bus_id);
         return ESP_ERR_INVALID_STATE;
     }
 
     printf("\r\n");
-    printf("Scanning I2C bus %d...\r\n", bus_id);
+    printf("Scanning I2C bus %d...\n", bus_id);
     printf("     ");
 
-    for (int col = 0; col < 16; col++) {
+    for (int col = 0; col < 16; col++)
+    {
         printf("%02X ", col);
     }
-    printf("\r\n");
 
+    printf("\n");
     int devices_found = 0;
 
-    for (int row = 0; row < 8; row++) {
+    for (int row = 0; row < 8; row++)
+    {
         printf("%02X: ", row << 4);
 
-        for (int col = 0; col < 16; col++) {
+        for (int col = 0; col < 16; col++)
+        {
             uint8_t addr = (row << 4) | col;
 
-            if (addr < 0x08 || addr > 0x77) {
+            if (addr < 0x08 || addr > 0x77)
+            {
                 printf("-- ");
                 continue;
             }
 
             esp_err_t ret = i2c_bus_probe(bus_id, addr);
-            if (ret == ESP_OK) {
+            if (ret == ESP_OK)
+            {
                 printf("%02X ", addr);
                 devices_found++;
-            } else {
+            }
+            else
+            {
                 printf("-- ");
             }
         }
 
-        printf("\r\n");
+        printf("\n");
     }
 
     printf("Devices found on I2C bus %d: %d\r\n", bus_id, devices_found);
-    printf("\r\n");
-
     return ESP_OK;
 }
 

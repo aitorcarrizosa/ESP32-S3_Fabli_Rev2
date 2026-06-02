@@ -270,11 +270,11 @@ void usb_ctrl_print_status(void)
 
     printf("\r\n");
     printf("USB status:\r\n");
-    printf("  MODE        = %s\r\n", audio_mode ? "AUDIO" : "USB");
-    printf("  USB_SRC     = %d\r\n", gpio_ctrl_get_usb_src() ? 1 : 0);
-    printf("  AUDIO_SEL   = %d\r\n", gpio_ctrl_get_audio_sel() ? 1 : 0);
-    printf("  FUSB_nINT   = %d\r\n", gpio_ctrl_get_fusb_int_n() ? 1 : 0);
-    printf("  FUSB_ID     = %d\r\n", gpio_ctrl_get_fusb_id() ? 1 : 0);
+    printf("  MODE        = %s\n", audio_mode ? "AUDIO" : "USB");
+    printf("  USB_SRC     = %d\n", gpio_ctrl_get_usb_src() ? 1 : 0);
+    printf("  AUDIO_SEL   = %d\n", gpio_ctrl_get_audio_sel() ? 1 : 0);
+    printf("  FUSB_nINT   = %d\n", gpio_ctrl_get_fusb_int_n() ? 1 : 0);
+    printf("  FUSB_ID     = %d\n", gpio_ctrl_get_fusb_id() ? 1 : 0);
     printf("  INIT_DONE   = %d\r\n", s_initialized ? 1 : 0);
 
     if (!usb_ctrl_fusb_present()) {

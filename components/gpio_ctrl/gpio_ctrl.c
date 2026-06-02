@@ -10,7 +10,6 @@ static const char *TAG = "gpio_ctrl";
 /* -------------------------------------------------------------------------- */
 /* Local helpers                                                              */
 /* -------------------------------------------------------------------------- */
-
 static bool gpio_ctrl_read_level(gpio_num_t pin)
 {
     return gpio_get_level(pin) ? true : false;
@@ -24,7 +23,6 @@ static esp_err_t gpio_ctrl_write_level(gpio_num_t pin, bool high)
 /* -------------------------------------------------------------------------- */
 /* Init                                                                       */
 /* -------------------------------------------------------------------------- */
-
 esp_err_t gpio_ctrl_init(void)
 {
     esp_err_t ret;
@@ -35,7 +33,7 @@ esp_err_t gpio_ctrl_init(void)
                         (1ULL << PIN_LED_RESET_N) |
                         (1ULL << PIN_USB_SRC) |
                         (1ULL << PIN_AUDIO_SEL),
-        .mode = GPIO_MODE_OUTPUT,
+        .mode = GPIO_MODE_INPUT_OUTPUT,
         .pull_up_en = GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .intr_type = GPIO_INTR_DISABLE,
@@ -72,8 +70,12 @@ esp_err_t gpio_ctrl_init(void)
         return ret;
     }
 
-    /* Safe default states only. Functional policy belongs to upper modules. */
-    ret = gpio_ctrl_set_pwr_on(true);
+    /*
+     * PWR_ON is electrically active-low in the power switch circuit:
+     *   GPIO LOW  -> main power enabled
+     *   GPIO HIGH -> main power disabled
+     */
+    ret = gpio_ctrl_set_pwr_on(false);
     if (ret != ESP_OK) {
         return ret;
     }
@@ -105,7 +107,6 @@ esp_err_t gpio_ctrl_init(void)
 /* -------------------------------------------------------------------------- */
 /* Low-level output control                                                   */
 /* -------------------------------------------------------------------------- */
-
 esp_err_t gpio_ctrl_set_pwr_on(bool on)
 {
     return gpio_ctrl_write_level(PIN_PWR_ON, on);
@@ -134,7 +135,6 @@ esp_err_t gpio_ctrl_set_audio_sel(bool audio_mode)
 /* -------------------------------------------------------------------------- */
 /* Output reads                                                               */
 /* -------------------------------------------------------------------------- */
-
 bool gpio_ctrl_get_pwr_on(void)
 {
     return gpio_ctrl_read_level(PIN_PWR_ON);
@@ -163,7 +163,6 @@ bool gpio_ctrl_get_audio_sel(void)
 /* -------------------------------------------------------------------------- */
 /* Input reads                                                                */
 /* -------------------------------------------------------------------------- */
-
 bool gpio_ctrl_get_hp_det(void)
 {
     return gpio_ctrl_read_level(PIN_HP_DET);
@@ -227,32 +226,29 @@ bool gpio_ctrl_get_encoder_sw_n(void)
 /* -------------------------------------------------------------------------- */
 /* Status                                                                     */
 /* -------------------------------------------------------------------------- */
-
 void gpio_ctrl_print_status(void)
 {
     printf("\r\n");
     printf("GPIO status:\r\n");
 
     printf("  Inputs:\r\n");
-    printf("    HP_DET        = %d\r\n", gpio_ctrl_get_hp_det() ? 1 : 0);
-    printf("    AC_nOK        = %d\r\n", gpio_ctrl_get_ac_nok() ? 1 : 0);
-    printf("    CHG_OK        = %d\r\n", gpio_ctrl_get_chg_ok() ? 1 : 0);
-    printf("    LED_nFAULT_1  = %d\r\n", gpio_ctrl_get_led_fault1_n() ? 1 : 0);
-    printf("    LED_nFAULT_2  = %d\r\n", gpio_ctrl_get_led_fault2_n() ? 1 : 0);
-    printf("    FUSB_nINT     = %d\r\n", gpio_ctrl_get_fusb_int_n() ? 1 : 0);
-    printf("    FUSB_ID       = %d\r\n", gpio_ctrl_get_fusb_id() ? 1 : 0);
-    printf("    KEY_nINT      = %d\r\n", gpio_ctrl_get_key_int_n() ? 1 : 0);
-    printf("    MEMS_INT1     = %d\r\n", gpio_ctrl_get_mems_int1() ? 1 : 0);
-    printf("    ENCODER_A     = %d\r\n", gpio_ctrl_get_encoder_a() ? 1 : 0);
-    printf("    ENCODER_B     = %d\r\n", gpio_ctrl_get_encoder_b() ? 1 : 0);
+    printf("    HP_DET        = %d\n", gpio_ctrl_get_hp_det() ? 1 : 0);
+    printf("    AC_nOK        = %d\n", gpio_ctrl_get_ac_nok() ? 1 : 0);
+    printf("    CHG_OK        = %d\n", gpio_ctrl_get_chg_ok() ? 1 : 0);
+    printf("    LED_nFAULT_1  = %d\n", gpio_ctrl_get_led_fault1_n() ? 1 : 0);
+    printf("    LED_nFAULT_2  = %d\n", gpio_ctrl_get_led_fault2_n() ? 1 : 0);
+    printf("    FUSB_nINT     = %d\n", gpio_ctrl_get_fusb_int_n() ? 1 : 0);
+    printf("    FUSB_ID       = %d\n", gpio_ctrl_get_fusb_id() ? 1 : 0);
+    printf("    KEY_nINT      = %d\n", gpio_ctrl_get_key_int_n() ? 1 : 0);
+    printf("    MEMS_INT1     = %d\n", gpio_ctrl_get_mems_int1() ? 1 : 0);
+    printf("    ENCODER_A     = %d\n", gpio_ctrl_get_encoder_a() ? 1 : 0);
+    printf("    ENCODER_B     = %d\n", gpio_ctrl_get_encoder_b() ? 1 : 0);
     printf("    ENCODER_nSW   = %d\r\n", gpio_ctrl_get_encoder_sw_n() ? 1 : 0);
 
     printf("  Outputs:\r\n");
-    printf("    PWR_ON        = %d\r\n", gpio_ctrl_get_pwr_on() ? 1 : 0);
-    printf("    LED_EN        = %d\r\n", gpio_ctrl_get_led_enable() ? 1 : 0);
-    printf("    LED_nRESET    = %d\r\n", gpio_ctrl_get_led_reset() ? 1 : 0);
-    printf("    USB_SRC       = %d\r\n", gpio_ctrl_get_usb_src() ? 1 : 0);
+    printf("    PWR_ON        = %d\n", gpio_ctrl_get_pwr_on() ? 1 : 0);
+    printf("    LED_EN        = %d\n", gpio_ctrl_get_led_enable() ? 1 : 0);
+    printf("    LED_nRESET    = %d\n", gpio_ctrl_get_led_reset() ? 1 : 0);
+    printf("    USB_SRC       = %d\n", gpio_ctrl_get_usb_src() ? 1 : 0);
     printf("    AUDIO_SEL     = %d\r\n", gpio_ctrl_get_audio_sel() ? 1 : 0);
-
-    printf("\r\n");
 }
